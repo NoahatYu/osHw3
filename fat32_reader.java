@@ -17,13 +17,20 @@ import java.io.IOException;
 public class fat32Reader {
     private int byteCount = 10485760;//10MB
 
+    /**
+     * Constructor
+     */
+    public fat32Reader(){
+
+    }
+
     //TODO: ADD helper methods!
     public static void main(String[] args) throws IOException {
         /* Parse args and open our image file */
         //System.Text.Encoding.ASCII.GetString(buf);
         String fat32Img = args[0];
         fat32Reader f32Reader = new fat32Reader();
-        f32Reader.getBytesData(fat32Img,13,1);
+        //f32Reader.getBytesData(fat32Img,11,2);
 
 
 
@@ -33,10 +40,7 @@ public class fat32Reader {
         //printf("Root addr is 0x%x\n", root_addr);
 
 
-		/* Main loop.  You probably want to create a helper function
-       		for each command besides quit. */
-
-
+		/* Main loop. */
         while(true) {
             System.out.print("/] ");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -50,7 +54,7 @@ public class fat32Reader {
             switch (cmdLine.toLowerCase()) {
                 case "info":
                     System.out.println("Go to display info");
-                    //run info helper method
+                    f32Reader.printInfo(fat32Img);
                     break;
                 case "open":
                     System.out.println("Going to open");
@@ -91,6 +95,27 @@ public class fat32Reader {
     }
 
     /**
+     * Prints info when info command is called.
+     * @param fat32
+     * @throws IOException
+     */
+    public void printInfo(String fat32) throws IOException {
+        System.out.print("BPB_BytesPerSec: ");
+        getBytesData(fat32,11,2);
+        System.out.print("BPB_SecPerClus: ");
+        getBytesData(fat32,13,1);
+        System.out.print("BPB_RsvdSecCnt: ");
+        getBytesData(fat32,14,2);
+        System.out.print("BPB_NumFATS: ");
+        getBytesData(fat32,16,1);
+        System.out.print("BPB_FATSz32: ");
+        getBytesData(fat32,36,4);
+
+
+
+    }
+
+    /**
      * Gets byte data from fat32 Image
      * @param fat32Img
      * @param offset
@@ -113,7 +138,9 @@ public class fat32Reader {
             eBit += unsignedInt * exp;
             exp = exp/256;
         }
-        System.out.println(eBit);
+        System.out.print(eBit + ", ");
+        //little endian hex
+        System.out.print("0x" + Integer.toHexString(eBit) + "\n");
     }
 
      /*int length = 0x8FFFFFF;
