@@ -5,6 +5,9 @@ import java.io.InputStreamReader;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 /*********************************************************
  * TODO: Fill in this area and delete this line
  * Name of program:
@@ -12,17 +15,16 @@ import java.nio.channels.*;
  * Description:
  **********************************************************/
 public class fat32Reader {
+    private int byteCount = 10485760;//10MB
+
     //TODO: ADD helper methods!
     public static void main(String[] args) throws IOException {
         /* Parse args and open our image file */
+        //System.Text.Encoding.ASCII.GetString(buf);
         String fat32Img = args[0];
-        MappedByteBuffer out = new RandomAccessFile("fat32Img", "rw").getChannel().map(FileChannel.MapMode.READ_WRITE, 0, length);
+        fat32Reader f32Reader = new fat32Reader();
+        f32Reader.getBytesData(fat32Img,13,1);
 
-        /*for(int i = 0; i < length; i++)
-            out.put((byte)'x');
-        System.out.println("Finished writing");*/
-        for(int i = length/2; i < length/2 + 6; i++)
-            System.out.print((char)out.get(i));
 
 
 		/* Parse boot sector and get information */
@@ -38,12 +40,12 @@ public class fat32Reader {
         while(true) {
             System.out.print("/] ");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String cmdLine = null;
-        try {
-            cmdLine = br.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            String cmdLine = null;
+            try {
+                cmdLine = br.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 			/* Start comparing input */
             switch (cmdLine.toLowerCase()) {
                 case "info":
@@ -87,4 +89,60 @@ public class fat32Reader {
             //return 0; /* Success */
         }
     }
+
+    /**
+     * Gets byte data from fat32 Image
+     * @param fat32Img
+     * @param offset
+     * @param size
+     * @throws IOException
+     */
+    public void getBytesData(String fat32Img,int offset, int size) throws IOException {
+
+        RandomAccessFile memoryMappedFile = new RandomAccessFile(fat32Img, "rw");
+
+        //Mapping a file into memory
+        MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, byteCount);
+
+        //reading from memory file in Java little endian
+        double exp = Math.pow(256,size - 1);
+        int eBit = 0;
+        for (int i = offset + size - 1; i >= offset; i--){
+            //Covert number to unsigned if negative.
+            int unsignedInt = out.get(i) & 0xFF;
+            eBit += unsignedInt * exp;
+            exp = exp/256;
+        }
+        System.out.println(eBit);
+    }
+
+     /*int length = 0x8FFFFFF;
+        FileChannel fc = new FileInputStream(new File(fat32Img)).getChannel();
+        MappedByteBuffer ib = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).load();
+        while(ib.hasRemaining())
+            System.out.println(ib.get());
+        fc.close();*/
+
+
+       /* FileInputStream in = null;
+        FileOutputStream out = null;
+
+        try {
+            in = new FileInputStream(fat32Img);
+            out = new FileOutputStream("outagain.txt");
+            int c;
+
+            while ((c = in.read()) != -1) {
+                System.out.println(c);
+            }
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+        }*/
+
 }
+
