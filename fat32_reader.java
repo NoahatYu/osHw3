@@ -1,4 +1,3 @@
-package com.company;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -34,13 +33,13 @@ public class fat32Reader {
 
 
 
-		/* Parse boot sector and get information */
+        /* Parse boot sector and get information */
 
-		/* Get root directory address */
+        /* Get root directory address */
         //printf("Root addr is 0x%x\n", root_addr);
 
 
-		/* Main loop. */
+        /* Main loop. */
         while(true) {
             System.out.print("/] ");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -50,7 +49,7 @@ public class fat32Reader {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-			/* Start comparing input */
+            /* Start comparing input */
             switch (cmdLine.toLowerCase()) {
                 case "info":
                     System.out.println("Go to display info");
@@ -88,7 +87,7 @@ public class fat32Reader {
                     System.out.println("Unrecognized command");
             }
 
-		/* Close the file */
+            /* Close the file */
 
             //return 0; /* Success */
         }
@@ -101,15 +100,15 @@ public class fat32Reader {
      */
     public void printInfo(String fat32) throws IOException {
         System.out.print("BPB_BytesPerSec: ");
-        getBytesData(fat32,11,2);
+        System.out.println(getBytesData(fat32,11,2));
         System.out.print("BPB_SecPerClus: ");
-        getBytesData(fat32,13,1);
+        System.out.println(getBytesData(fat32,13,1));
         System.out.print("BPB_RsvdSecCnt: ");
-        getBytesData(fat32,14,2);
+        System.out.println(getBytesData(fat32,14,2));
         System.out.print("BPB_NumFATS: ");
-        getBytesData(fat32,16,1);
+        System.out.println(getBytesData(fat32,16,1));
         System.out.print("BPB_FATSz32: ");
-        getBytesData(fat32,36,4);
+        System.out.println(getBytesData(fat32,36,4));
 
 
 
@@ -122,7 +121,7 @@ public class fat32Reader {
      * @param size
      * @throws IOException
      */
-    public void getBytesData(String fat32Img,int offset, int size) throws IOException {
+    public int getBytesData(String fat32Img,int offset, int size) throws IOException {
 
         RandomAccessFile memoryMappedFile = new RandomAccessFile(fat32Img, "rw");
 
@@ -138,10 +137,32 @@ public class fat32Reader {
             eBit += unsignedInt * exp;
             exp = exp/256;
         }
-        System.out.print(eBit + ", ");
+        //System.out.print(eBit + ", ");
         //little endian hex
-        System.out.print("0x" + Integer.toHexString(eBit) + "\n");
+        System.out.print("0x" + Integer.toHexString(eBit) + ", ");
+        return eBit;
     }
+
+
+
+    public void getRootDirectory(String fat32) throws IOException {
+        int BPB_ResvdSectCnt = getBytesData(fat32,14,2);
+        int BPB_NumFATs = getBytesData(fat32,16,1);
+        int FATsz = getBytesData(fat32,36,4);
+        int BPB_RootEntCnt = getBytesData(fat32,17,2);
+        int BPB_BytsPerSec = getBytesData(fat32,11,2);
+        int RootDirSectors = ((BPB_RootEntCnt * 32) + (BPB_BytsPerSec -1)) / BPB_BytsPerSec;
+        int FirstDataSector = BPB_ResvdSectCnt + (BPB_NumFATs * FATsz) + RootDirSectors;
+        int BPB_SecPerClus = getBytesData(fat32,13,1);
+        int N = getBytesData(fat32,44,4);
+        int FirstSectorofCluster = ((N - 2) * BPB_SecPerClus) + FirstDataSector;
+    }
+
+
+
+
+
+
 
      /*int length = 0x8FFFFFF;
         FileChannel fc = new FileInputStream(new File(fat32Img)).getChannel();
