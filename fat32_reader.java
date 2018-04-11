@@ -1,4 +1,3 @@
-package com.company;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,7 +13,7 @@ import java.io.IOException;
  * Authors:
  * Description:
  **********************************************************/
-public class fat32_reader {
+public class fat32Reader {
     private int byteCount = 10485760;//10MB
 
     /**
@@ -150,7 +149,7 @@ public class fat32_reader {
 
 
     public void getRootDirectory(String fat32) throws IOException {
-    //TODO: Make these fields to reference later
+        //TODO: Make these fields to reference later
         int BPB_ResvdSectCnt = getBytesData(fat32,14,2);
         int BPB_NumFATs = getBytesData(fat32,16,1);
         int FATsz = getBytesData(fat32,36,4);
@@ -160,9 +159,17 @@ public class fat32_reader {
         int FirstDataSector = BPB_ResvdSectCnt + (BPB_NumFATs * FATsz) + RootDirSectors;
         int BPB_SecPerClus = getBytesData(fat32,13,1);
         int N = getBytesData(fat32,44,4);
+        int DataSec = 0 - (BPB_ResvdSectCnt + (BPB_NumFATs * FATsz) + RootDirSectors);
         int BPB_RootClus = N;
         int FirstSectorofCluster = ((N - 2) * BPB_SecPerClus) + FirstDataSector;
+        int CountofClusters = DataSec / BPB_SecPerClus;
         int rootDir = FirstSectorofCluster * BPB_BytsPerSec;
+        int FATOffset = N * 4;
+        int ThisFATSecNum = BPB_ResvdSectCnt + (FATOffset / BPB_BytsPerSec);
+        int ThisFATEntOffset = FATOffset % BPB_BytsPerSec;
+        int DIR_FstClusLO = getBytesData(fat32,26 + rootDir,2);
+        int DIR_FstClusHI = getBytesData(fat32,192 + rootDir,2);
+        N = (DIR_FstClusHI * 256) + DIR_FstClusLO;
     }
 
 
