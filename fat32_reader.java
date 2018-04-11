@@ -1,3 +1,4 @@
+package com.company;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,7 +14,7 @@ import java.io.IOException;
  * Authors:
  * Description:
  **********************************************************/
-public class fat32Reader {
+public class fat32_reader {
     private int byteCount = 10485760;//10MB
 
     /**
@@ -23,7 +24,11 @@ public class fat32Reader {
 
     }
 
-    //TODO: ADD helper methods!
+    /**
+     *
+     * @param args
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException {
         /* Parse args and open our image file */
         //System.Text.Encoding.ASCII.GetString(buf);
@@ -31,7 +36,7 @@ public class fat32Reader {
         fat32Reader f32Reader = new fat32Reader();
         //f32Reader.getBytesData(fat32Img,11,2);
 
-
+        //TODO: ADD helper methods!
 
         /* Parse boot sector and get information */
 
@@ -54,6 +59,7 @@ public class fat32Reader {
                 case "info":
                     System.out.println("Go to display info");
                     f32Reader.printInfo(fat32Img);
+                    f32Reader.getRootDirectory(fat32Img);
                     break;
                 case "stat":
                     System.out.println("Going to stat");
@@ -110,7 +116,6 @@ public class fat32Reader {
         System.out.print("BPB_FATSz32: ");
         System.out.println(getBytesData(fat32,36,4));
 
-
     }
 
     /**
@@ -145,6 +150,7 @@ public class fat32Reader {
 
 
     public void getRootDirectory(String fat32) throws IOException {
+    //TODO: Make these fields to reference later
         int BPB_ResvdSectCnt = getBytesData(fat32,14,2);
         int BPB_NumFATs = getBytesData(fat32,16,1);
         int FATsz = getBytesData(fat32,36,4);
@@ -154,7 +160,9 @@ public class fat32Reader {
         int FirstDataSector = BPB_ResvdSectCnt + (BPB_NumFATs * FATsz) + RootDirSectors;
         int BPB_SecPerClus = getBytesData(fat32,13,1);
         int N = getBytesData(fat32,44,4);
+        int BPB_RootClus = N;
         int FirstSectorofCluster = ((N - 2) * BPB_SecPerClus) + FirstDataSector;
+        int rootDir = FirstSectorofCluster * BPB_BytsPerSec;
     }
 
 
@@ -192,4 +200,3 @@ public class fat32Reader {
         }*/
 
 }
-
