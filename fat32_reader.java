@@ -55,13 +55,9 @@ public class fat32Reader {
                     System.out.println("Go to display info");
                     f32Reader.printInfo(fat32Img);
                     break;
-                case "open":
-                    System.out.println("Going to open");
+                case "stat":
+                    System.out.println("Going to stat");
                     //run open helper method
-                    break;
-                case "close":
-                    System.out.println("Going to close");
-                    //run close helper method
                     break;
                 case "size":
                     System.out.println("Going to size");
@@ -77,6 +73,10 @@ public class fat32Reader {
                     break;
                 case "read":
                     System.out.println("Going to read");
+                    //run read helper method
+                    break;
+                case "volume":
+                    System.out.println("Going to volume");
                     //run read helper method
                     break;
                 case "quit":
@@ -109,7 +109,6 @@ public class fat32Reader {
         System.out.println(getBytesData(fat32,16,1));
         System.out.print("BPB_FATSz32: ");
         System.out.println(getBytesData(fat32,36,4));
-
 
 
     }
