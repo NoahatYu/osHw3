@@ -11,7 +11,6 @@ Files/directories:
 Instructions for compiling program:
 	• Step1: Once inside of the directory that contains the files of the project.
 	type ```javac *.java``` to compile all the files.
-	
 	• Step2: To run type ```java -cp . fat32Reader <absolute_path of fat32 Image>```.
 
 Challenges encountered along the way:
