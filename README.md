@@ -10,7 +10,6 @@ Files/directories:
 	• DirEntry.java - Class Object that contains all the info for each individual directory entry.
  
 Instructions for compiling program:
-
 	• Step1: Once inside of the directory that contains the files of the project.
 	type ```javac *.java``` to compile all the files.
 	• Step2: To run type ```java -cp . fat32Reader <absolute_path of fat32 Image>```.
