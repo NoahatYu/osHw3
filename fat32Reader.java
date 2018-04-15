@@ -30,8 +30,10 @@ public class fat32Reader {
     private int ThisFATEntOffset;
     private int FirstSectorofCluster;
     private int rootDir;
+    private int currentDir;
+    private static DirectoryObj directoryObj;
     private MappedByteBuffer out;
-
+    //TODO: Clean up constructor and make it into a method
     /**
      * Constructor
      */
@@ -53,7 +55,6 @@ public class fat32Reader {
         RootDirSectors = ((BPB_RootEntCnt * 32) + (BPB_BytsPerSec -1)) / BPB_BytsPerSec;
         int FATOffset = N * 4;
         FirstDataSector = BPB_ResvdSecCnt + (BPB_NumFATs * FATsz) + RootDirSectors;
-
         /* ThisFATSecNum is the sector number of the FAT sector that contains the entry for
         cluster N in the first FAT. If you want the sector number in the second FAT, you add FATSz to
         ThisFATSecNum; for the third FAT, you add (2 * FATSz), and so on. */
@@ -63,12 +64,15 @@ public class fat32Reader {
            relative to sector 0 of the FAT volume) is computed as follows*/
         FirstSectorofCluster = ((N - 2) * BPB_SecPerClus) + FirstDataSector;
         rootDir = FirstSectorofCluster * BPB_BytsPerSec;
-
     }
 
 
+    /*public int getBPBInfo() {
+        return ;
+    }*/
+
     /**
-     *
+     * Main Method
      * @param args
      * @throws IOException
      */
@@ -77,15 +81,14 @@ public class fat32Reader {
         //System.Text.Encoding.ASCII.GetString(buf);
         String fat32Img = args[0];
         fat32Reader f32Reader = new fat32Reader(fat32Img);
-        int rootDirM = f32Reader.getRootDir();
-        //f32Reader.getBytesData(fat32Img,11,2);
-
-        //TODO: ADD helper methods!
-
-        /* Parse boot sector and get information */
 
         /* Get root directory address */
-        //printf("Root addr is 0x%x\n", root_addr);
+        int rootDirM = f32Reader.getRootDir();
+        //Set current directory to root
+        int currentDir = rootDirM;
+        //f32Reader.getBytesData(fat32Img,11,2);
+        List<DirEntry> dirInfo;
+
 
 
         /* Main loop. */
@@ -93,24 +96,35 @@ public class fat32Reader {
             System.out.print("/] ");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String cmdLine = null;
+            String[] cmdLineArgs = null;
             try {
                 cmdLine = br.readLine();
+                cmdLineArgs = cmdLine.split(" ");
             } catch (IOException e) {
                 e.printStackTrace();
             }
             /* Start comparing input */
-            switch (cmdLine.toLowerCase()) {
+            switch (cmdLineArgs[0].toLowerCase()) {
                 case "info":
+                    //run info helper method
                     System.out.println("Go to display info");
                     f32Reader.printInfo(fat32Img);
                     break;
                 case "stat":
                     System.out.println("Going to stat");
                     //run stat helper method
+                    directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
+                    dirInfo = f32Reader.getDirInfoLst(fat32Img,directoryObj,f32Reader,currentDir);
+                    if(cmdLineArgs.length > 1) {
+                        f32Reader.doStat(cmdLineArgs[1], directoryObj);
+                    }else {
+                        System.out.println("Error: no file/directory was inputted");
+                    }
                     break;
                 case "size":
                     System.out.println("Going to size");
                     //run size helper method
+
                     break;
                 case "cd":
                     System.out.println("Going to cd");
@@ -118,8 +132,13 @@ public class fat32Reader {
                     break;
                 case "ls":
                     System.out.println("Going to ls");
-                    //run ls helper method
-                    f32Reader.doLS(fat32Img,f32Reader,rootDirM);
+                    //run ls helper methods
+                    //Get current directory info
+                    directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
+                    dirInfo = f32Reader.getDirInfoLst(fat32Img,directoryObj,f32Reader,currentDir);
+                    //print all the short names of the current directory
+                    f32Reader.printLsInfo(dirInfo);
+                    System.out.println();
                     break;
                 case "read":
                     System.out.println("Going to read");
@@ -158,7 +177,6 @@ public class fat32Reader {
     }
 
 
-
     /**
      * Gets byte data from fat32 Image
      * @param fat32Img
@@ -186,6 +204,14 @@ public class fat32Reader {
         return eBit;
     }
 
+    /**
+     * Gets the bytes from the image and converts them to chars
+     * @param fat32Img string fat 32 image
+     * @param offset offset in image
+     * @param size number of bytes
+     * @return String that was coverts from bytes
+     * @throws IOException
+     */
     public String getBytesChar(String fat32Img, int offset, int size) throws IOException {
 
         //RandomAccessFile memoryMappedFile = new RandomAccessFile(fat32Img, "rw");
@@ -209,24 +235,74 @@ public class fat32Reader {
 
 
     /**
-     * Helper method to do the LS command
+     * Get current directory info
      * @param fat32
+     * @param f32Reader
+     * @param currentDir
+     * @return
      * @throws IOException
      */
-    public void doLS(String fat32,fat32Reader f32Reader,int currentDir) throws IOException {
-        DirectoryObj dObj = new DirectoryObj(fat32,f32Reader,currentDir);
+    public List<DirEntry> getDirInfoLst(String fat32,DirectoryObj dObj,fat32Reader f32Reader, int currentDir) throws IOException {
         List<DirEntry> dEntryList = dObj.getdEntryLst();
+        return dEntryList;
+    }
+
+    /**
+     * Print the ls info
+     * @param dEntryList
+     */
+    public void printLsInfo(List<DirEntry> dEntryList){
         int dEntryLength = dEntryList.size();
         for(int i =0;i < dEntryLength;i++){
             DirEntry dE = dEntryList.get(i);
-            System.out.print(dE.getDirName() + " ");
+            char attrNameFirstChar = dE.getDirName().charAt(0);
+            int attrNameFirstCharInt = (int)attrNameFirstChar;
+            //make sure not to print the volume id or secret/hidden files
+            if(dE.getDirAttr() != 8 && dE.getDirAttr() != 2 && attrNameFirstCharInt != 229){
+                System.out.print(dE.getDirName() + " ");
+            }
+
         }
     }
 
 
+    public void doStat(String dirFile,DirectoryObj dirObj){
+        DirEntry dirEntry = dirObj.getDirEntryByName(dirFile.toLowerCase());
+        //if dir file name not there don't print
+        if(dirEntry != null) {
+            System.out.println("Size is " + dirEntry.getFileSize());
+            System.out.println("Attributes " + dirEntry.getDirAttrName());
+            System.out.println("Next cluster number is " + dirEntry.getNextClusHex());
+        }else{
+            //print error message
+            System.out.println("Error: file/directory does not exist");
+        }
+    }
+
+    /**
+     * Converts decimal number to hex number string
+     * @param num any number
+     * @return String hex of num
+     */
+    public String hexer(int num){
+        return "0x" + Integer.toHexString(num);
+    }
+
+    /**
+     * Get root directory offset
+     * @return root dir offset
+     */
+    public int getRootDir() {
+        return rootDir;
+    }
+
+
+    public int getCurrentDir(){
+        return currentDir;
+    }
 
     public void getLS(String fat32) throws IOException {
-    //TODO: Make these fields to reference later
+        //TODO: Make these fields to reference later
         int BPB_RootClus = N;
         /* Given any valid data cluster number N, the sector number of the first sector of that cluster (again
         relative to sector 0 of the FAT volume) is computed as follows:*/
@@ -244,13 +320,5 @@ public class fat32Reader {
             System.out.println(b.get(i));
         }
         System.out.println(s);
-    }
-
-    public String hexer(int num){
-        return "0x" + Integer.toHexString(num);
-    }
-
-    public int getRootDir() {
-        return rootDir;
     }
 }

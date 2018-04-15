@@ -2,6 +2,7 @@ package com.company;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class DirectoryObj {
@@ -9,15 +10,14 @@ public class DirectoryObj {
     private List<Integer> hiLoClus;
     private List<Integer> dirAttr;*/
     private List<DirEntry> dEntryLst;
+    private HashMap<Integer,String> dirAttrMap;
 
-    /*/* Given any valid data cluster number N, the sector number of the first sector of that cluster (again
-        relative to sector 0 of the FAT volume) is computed as follows:
-    int FirstSectorofCluster = ((N - 2) * BPB_SecPerClus) + FirstDataSector;
-    int currentDir = FirstSectorofCluster * BPB_BytsPerSec;
-    */
 
     /**
-     * Constructor
+     * Constructor to create Directory Object
+     * @param fat32
+     * @param f32
+     * @param dir
      */
     public DirectoryObj(String fat32,fat32Reader f32,int dir) {
         /*dirNames = new ArrayList<String>();
@@ -25,13 +25,22 @@ public class DirectoryObj {
         dirAttr = new ArrayList<Integer>();
         */
         dEntryLst = new ArrayList<DirEntry>();
+        //map attributes number values to their string names
+        dirAttrMap = new HashMap<Integer, String>();
+        dirAttrMap.put(1,"ATTR_READ_ONLY");
+        dirAttrMap.put(2,"ATTR_HIDDEN");
+        dirAttrMap.put(4,"ATTR_SYSTEM");
+        dirAttrMap.put(8,"ATTR_VOLUME_ID");
+        dirAttrMap.put(16,"ATTR_DIRECTORY");
+        dirAttrMap.put(32,"ATTR_ARCHIVE");
         try {
-            doDir(fat32,f32,dir);
+            getDirInfo(fat32,f32,dir);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
     }
+
 
     /**
      * Loop through fat32 image of the root directory and create DirEntry objects and add them to a list
@@ -40,14 +49,14 @@ public class DirectoryObj {
      * @param currentDir
      * @throws IOException
      */
-    public void doDir(String fat32,fat32Reader f32,int currentDir)throws IOException {
+    public void getDirInfo(String fat32,fat32Reader f32,int currentDir)throws IOException {
 
         int offNum = 0;
         int varNum = 0;
         boolean done = false;
         while(!done) {
-
             String DIR_Name = f32.getBytesChar(fat32, currentDir + varNum + offNum, 8);
+            int dirNameNumStart = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
             offNum += 8;
             String DIR_Name_ext = f32.getBytesChar(fat32, currentDir + varNum + offNum, 3);
             offNum += 3;
@@ -56,6 +65,8 @@ public class DirectoryObj {
             int DIR_FstClusHI = f32.getBytesData(fat32, currentDir + varNum + offNum, 2);
             offNum += 6;
             int DIR_FstClusLO = f32.getBytesData(fat32, currentDir + varNum + offNum, 2);
+            offNum += 2;
+            int DIR_fileSize = f32.getBytesData(fat32,currentDir + varNum + offNum,4);
 
             //If there are 32 bytes of 0s then that is the end of the directory entries
             if (DIR_Name.equals("")) {
@@ -66,9 +77,9 @@ public class DirectoryObj {
             } else {
                 String DirNameFull = "";
                 //If it is 8 then it is a volume ID, so don't add it to lists
-                if (DIR_Attr != 8 && DIR_Attr != 0) {
+                if (DIR_Attr != 0) {
                     //if it is a directory then it has no extension
-                    if (DIR_Attr == 16) {
+                    if (DIR_Attr == 16 || DIR_Attr == 8) {
                         DirNameFull = DIR_Name;
                     } else {
                         DirNameFull = DIR_Name + "." + DIR_Name_ext;
@@ -76,7 +87,8 @@ public class DirectoryObj {
                     //add info to lists
                     //parse the short name directory before it is added to the list.
                     DirNameFull = DirNameFull.toLowerCase().replaceAll(" ", "");
-                    DirEntry dEntry = new DirEntry(DirNameFull,DIR_FstClusHI + DIR_FstClusLO,DIR_Attr);
+                    String dirEntryStr = dirAttrMap.get(DIR_Attr);
+                    DirEntry dEntry = new DirEntry(DirNameFull,DIR_FstClusHI, DIR_FstClusLO,DIR_Attr,dirEntryStr,DIR_fileSize);
                     dEntryLst.add(dEntry);
 
                     /*
@@ -121,5 +133,11 @@ public class DirectoryObj {
     public DirEntry getDirEntry(int dirNum){
         return dEntryLst.get(dirNum);
     }
+
+    /*/* Given any valid data cluster number N, the sector number of the first sector of that cluster (again
+        relative to sector 0 of the FAT volume) is computed as follows:
+    int FirstSectorofCluster = ((N - 2) * BPB_SecPerClus) + FirstDataSector;
+    int currentDir = FirstSectorofCluster * BPB_BytsPerSec;
+    */
 
 }
