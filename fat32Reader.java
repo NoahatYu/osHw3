@@ -31,7 +31,7 @@ public class fat32Reader {
     private int FirstSectorofCluster;
     private int rootDir;
     private int currentDir;
-    private static DirectoryObj directoryObj;
+    //private static DirectoryObj directoryObj;
     private MappedByteBuffer out;
     //TODO: Clean up constructor and make it into a method
     /**
@@ -88,6 +88,7 @@ public class fat32Reader {
         int currentDir = rootDirM;
         //f32Reader.getBytesData(fat32Img,11,2);
         List<DirEntry> dirInfo;
+        DirectoryObj directoryObj;
 
 
 
@@ -322,3 +323,4 @@ public class fat32Reader {
         System.out.println(s);
     }
 }
+
