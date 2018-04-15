@@ -1,4 +1,4 @@
-package com.company;
+//package com.company;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,9 +10,9 @@ import java.util.List;
 
 /*********************************************************
  * TODO: Fill in this area and delete this line
- * Name of program:
- * Authors:
- * Description:
+ * Name of program: Fat32 Utility
+ * Authors: Noah Potash and Shalom Azar
+ * Description: A Fat32 reader utility
  **********************************************************/
 public class fat32Reader {
     private int BPB_ResvdSecCnt;
@@ -66,10 +66,6 @@ public class fat32Reader {
         rootDir = FirstSectorofCluster * BPB_BytsPerSec;
     }
 
-
-    /*public int getBPBInfo() {
-        return ;
-    }*/
 
     /**
      * Main Method
@@ -187,11 +183,6 @@ public class fat32Reader {
      */
     public int getBytesData(String fat32Img,int offset, int size) throws IOException {
 
-        //RandomAccessFile memoryMappedFile = new RandomAccessFile(fat32Img, "rw");
-
-        //Mapping a file into memory
-        //MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, 10485760/*10MB*/);
-
         //reading from memory file in Java little endian
         double exp = Math.pow(256,size - 1);
         int eBit = 0;
@@ -302,25 +293,5 @@ public class fat32Reader {
         return currentDir;
     }
 
-    public void getLS(String fat32) throws IOException {
-        //TODO: Make these fields to reference later
-        int BPB_RootClus = N;
-        /* Given any valid data cluster number N, the sector number of the first sector of that cluster (again
-        relative to sector 0 of the FAT volume) is computed as follows:*/
-        int FirstSectorofCluster = ((N - 2) * BPB_SecPerClus) + FirstDataSector;
-        int rootDir = FirstSectorofCluster * BPB_BytsPerSec;
-        int x = 0;
-        String s = "";
-        ArrayList<String> b = new ArrayList<String>();
-        while(!getBytesChar(fat32, rootDir + x, 32).equals("")){
-            b.add(getBytesChar(fat32, rootDir + x, 11));
-            x += 64;
-        }//12884901882
-        //ArrayList<Integer> ba = getBytesArray(fat32, rootDir + x);
-        for(int i = 1; i < b.size(); i++){
-            System.out.println(b.get(i));
-        }
-        System.out.println(s);
-    }
 }
 
