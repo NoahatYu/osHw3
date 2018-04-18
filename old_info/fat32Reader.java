@@ -139,6 +139,7 @@ public class fat32Reader {
                 case "cd":
                     System.out.println("Going to cd");
                     //run cd helper method
+                    currentDir = 1096704 + 96;
                     break;
                 case "ls":
                     System.out.println("Going to ls");
@@ -299,8 +300,11 @@ public class fat32Reader {
      * @param dirFile file input
      * @param dirObj directory it us in
      */
-    public void doStat(String dirFile,DirectoryObj dirObj){
+    public void doStat(String dirFile,DirectoryObj dirObj) throws IOException {
         DirEntry dirEntry = dirObj.getDirEntryByName(dirFile.toLowerCase());
+        String fat32img = "/home/shalom/Desktop/OSHW#3/fat32.img";
+        //int x = getFileLocation(dirEntry);
+        doesFatContinue(fat32img, dirEntry);
         //if dir file name not there don't print
         if(dirEntry != null) {
             System.out.println("Size is " + dirEntry.getFileSize());
@@ -372,5 +376,27 @@ public class fat32Reader {
      */
     public void setCurrentDir(int currentDir) {
         this.currentDir = currentDir;
+    }
+
+    public int getFileLocation(DirEntry d, int n){
+        //int n = Integer.parseInt(d.getNextClusHex().split("0x")[1],16);
+        int FATOffset = n * 4;
+        int FirstSectorofCluster = ((n - 2) * BPB_SecPerClus) + FirstDataSector;
+        return FirstSectorofCluster * BPB_BytsPerSec;
+    }
+
+    public void doesFatContinue(String fat32img, DirEntry d) throws IOException {
+        int n = Integer.parseInt(d.getNextClusHex().split("0x")[1],16);
+        int eoc = 268435448;
+        while(n < eoc) {
+            System.out.println(n);
+            System.out.println("location value: " + getFileLocation(d, n));
+            int FATOffset = n * 4;
+            int FirstDataSector = BPB_ResvdSecCnt + (BPB_NumFATs * FATsz) + RootDirSectors;
+            int ThisFATSecNum = BPB_ResvdSecCnt + (FATOffset / BPB_BytsPerSec);
+            int thisFATEntOffset = (FATOffset % BPB_BytsPerSec);
+            int fatTable = ThisFATSecNum * BPB_BytsPerSec;
+            n = getBytesData(fat32img, fatTable + thisFATEntOffset, 4);
+        }
     }
 }
