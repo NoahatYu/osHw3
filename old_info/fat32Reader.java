@@ -1,4 +1,3 @@
-package com.company;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -62,13 +61,12 @@ public class fat32Reader {
         rootDir = FirstSectorofCluster * BPB_BytsPerSec;
 
         //TODO: Make fat table calculation in their own method:
-        fatTable = ThisFATEntOffset * BPB_BytsPerSec;
         /* ThisFATSecNum is the sector number of the FAT sector that contains the entry for
         cluster N in the first FAT. If you want the sector number in the second FAT, you add FATSz to
         ThisFATSecNum; for the third FAT, you add (2 * FATSz), and so on. */
         ThisFATSecNum = BPB_ResvdSecCnt + (FATOffset / BPB_BytsPerSec);
         ThisFATEntOffset = (FATOffset % BPB_BytsPerSec);
-
+        fatTable = ThisFATSecNum * BPB_BytsPerSec;
     }
 
 
@@ -88,9 +86,9 @@ public class fat32Reader {
         fat32Reader f32Reader = new fat32Reader(fat32Img);
 
         /* Get root directory address */
-        int rootDirM = f32Reader.getRootDir();
+        int rootDir = f32Reader.getRootDir();
         //Set current directory to root
-        int currentDir = rootDirM;
+        int currentDir = rootDir;
         //f32Reader.getBytesData(fat32Img,11,2);
         List<DirEntry> dirInfo;
         DirectoryObj directoryObj;
@@ -130,7 +128,13 @@ public class fat32Reader {
                 case "size":
                     System.out.println("Going to size");
                     //run size helper method
-
+                    directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
+                    if(cmdLineArgs.length > 1 && directoryObj.getDirEntryByName(cmdLineArgs[1]) != null) {
+                            System.out.println("Size is " + directoryObj.getDirEntryByName(cmdLineArgs[1]).getFileSize());
+                    }
+                    else {
+                        System.out.println("Error: no file/directory does not exist");
+                    }
                     break;
                 case "cd":
                     System.out.println("Going to cd");
@@ -153,6 +157,9 @@ public class fat32Reader {
                 case "volume":
                     System.out.println("Going to volume");
                     //run read helper method
+                    directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
+                    dirInfo = f32Reader.getDirInfoLst(fat32Img,directoryObj,f32Reader,rootDir);
+                    f32Reader.volumeInfo(dirInfo);
                     break;
                 case "quit":
                     System.out.println("Quitting");
@@ -272,6 +279,22 @@ public class fat32Reader {
     }
 
     /**
+     * Print the volume id
+     * @param dEntryList
+     */
+    public void volumeInfo(List<DirEntry> dEntryList){
+        int dEntryLength = dEntryList.size();
+        for(int i =0;i < dEntryLength;i++){
+            DirEntry dE = dEntryList.get(i);
+            //make sure to print the volume id
+            if(dE.getDirAttr() == 8){
+                System.out.println(dE.getDirName());
+            }
+
+        }
+    }
+
+    /**
      * Prints the info for stat
      * @param dirFile file input
      * @param dirObj directory it us in
@@ -333,5 +356,21 @@ public class fat32Reader {
      */
     public String hexer(int num){
         return "0x" + Integer.toHexString(num);
+    }
+
+    /**
+     * Set root directory
+     * @param rootDir
+     */
+    public void setRootDir(int rootDir) {
+        this.rootDir = rootDir;
+    }
+
+    /**
+     * Set current directory
+     * @param currentDir
+     */
+    public void setCurrentDir(int currentDir) {
+        this.currentDir = currentDir;
     }
 }

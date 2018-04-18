@@ -1,5 +1,3 @@
-package com.company;
-
 public class DirEntry {
 
     private String dirName;
