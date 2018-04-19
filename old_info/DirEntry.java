@@ -1,3 +1,8 @@
+package com.company;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class DirEntry {
 
     private String dirName;
@@ -7,6 +12,7 @@ public class DirEntry {
     private int dirAttr;
     private String dirAttrName;
     private int fileSize;
+    private List<Integer> clusters;
 
     /**
      * Constructor
@@ -24,6 +30,7 @@ public class DirEntry {
         this.dirAttr = dirAttr;
         this.fileSize = fileSize;
         this.dirAttrName = dirAttrName;
+        clusters = new ArrayList<Integer>();
         nextClusHex = getNextClusNum(this.hiClus,this.loClus);
 
     }
@@ -95,5 +102,13 @@ public class DirEntry {
      */
     public String getNextClusHex() {
         return nextClusHex;
+    }
+
+    public void addToClusterList(int val){
+        clusters.add(val);
+    }
+
+    public List<Integer> getClusters() {
+        return clusters;
     }
 }

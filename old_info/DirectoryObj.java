@@ -1,3 +1,5 @@
+package com.company;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,8 +55,10 @@ public class DirectoryObj {
         int varNum = 0;
         boolean done = false;
         while(!done) {
-            String DIR_Name = f32.getBytesChar(fat32, currentDir + varNum + offNum, 8);
             int dirNameNumStart = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
+            int getDot = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
+            int getDotDot = f32.getBytesData(fat32,currentDir + varNum + offNum,2);
+            String DIR_Name = f32.getBytesChar(fat32, currentDir + varNum + offNum, 8);
             offNum += 8;
             String DIR_Name_ext = f32.getBytesChar(fat32, currentDir + varNum + offNum, 3);
             offNum += 3;
@@ -67,9 +71,9 @@ public class DirectoryObj {
             int DIR_fileSize = f32.getBytesData(fat32,currentDir + varNum + offNum,4);
 
             //If there are 32 bytes of 0s then that is the end of the directory entries
-            if (DIR_Name.equals("")) {
+            if (DIR_Name.equals("") || varNum >= 512) {
                 int endOfNames = f32.getBytesData(fat32, currentDir + varNum + offNum, 32);
-                if (endOfNames == 0) {
+                if (endOfNames == 0 || varNum >= 512 ) {
                     done = true;
                 }
             } else {
@@ -89,14 +93,13 @@ public class DirectoryObj {
                     DirEntry dEntry = new DirEntry(DirNameFull,DIR_FstClusHI, DIR_FstClusLO,DIR_Attr,dirEntryStr,DIR_fileSize);
                     dEntryLst.add(dEntry);
 
-                    /*
-                    dirNames.add(DirNameFull);
-                    hiLoClus.add(DIR_FstClusHI + DIR_FstClusLO);
-                    dirAttr.add(DIR_Attr);*/
-
                 }
                 offNum = 0;//reset offset number
-                varNum += 64;//update varNum to move onto the next short name dir
+                if(getDot == 46 && getDotDot != 11822){
+                    varNum += 32;
+                }else {
+                    varNum += 64;//update varNum to move onto the next short name dir
+                }
             }
         }
     }
@@ -131,11 +134,5 @@ public class DirectoryObj {
     public DirEntry getDirEntry(int dirNum){
         return dEntryLst.get(dirNum);
     }
-
-    /*/* Given any valid data cluster number N, the sector number of the first sector of that cluster (again
-        relative to sector 0 of the FAT volume) is computed as follows:
-    int FirstSectorofCluster = ((N - 2) * BPB_SecPerClus) + FirstDataSector;
-    int currentDir = FirstSectorofCluster * BPB_BytsPerSec;
-    */
 
 }

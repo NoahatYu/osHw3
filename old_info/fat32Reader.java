@@ -1,3 +1,4 @@
+package com.company;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,6 +31,7 @@ public class fat32Reader {
     private int rootDir;
     private int currentDir;
     private int fatTable;
+    private String fat32img;
     //private static DirectoryObj directoryObj;
     private MappedByteBuffer out;
 
@@ -84,6 +86,7 @@ public class fat32Reader {
         //System.Text.Encoding.ASCII.GetString(buf);
         String fat32Img = args[0];
         fat32Reader f32Reader = new fat32Reader(fat32Img);
+        f32Reader.setFat32img(fat32Img);
 
         /* Get root directory address */
         int rootDir = f32Reader.getRootDir();
@@ -93,11 +96,11 @@ public class fat32Reader {
         List<DirEntry> dirInfo;
         DirectoryObj directoryObj;
 
-
+        String workingDir = "";
 
         /* Main loop. */
         while(true) {
-            System.out.print("/] ");
+            System.out.print("/" + workingDir + "] ");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String cmdLine = null;
             String[] cmdLineArgs = null;
@@ -130,7 +133,7 @@ public class fat32Reader {
                     //run size helper method
                     directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
                     if(cmdLineArgs.length > 1 && directoryObj.getDirEntryByName(cmdLineArgs[1]) != null) {
-                            System.out.println("Size is " + directoryObj.getDirEntryByName(cmdLineArgs[1]).getFileSize());
+                        System.out.println("Size is " + directoryObj.getDirEntryByName(cmdLineArgs[1]).getFileSize());
                     }
                     else {
                         System.out.println("Error: no file/directory does not exist");
@@ -139,12 +142,15 @@ public class fat32Reader {
                 case "cd":
                     System.out.println("Going to cd");
                     //run cd helper method
+                    currentDir = 1096704;
+                    workingDir = cmdLineArgs[1].toUpperCase();
                     break;
                 case "ls":
                     System.out.println("Going to ls");
                     //run ls helper methods
                     //Get current directory info
                     directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
+                    List<Integer> t = new ArrayList<Integer>();
                     dirInfo = f32Reader.getDirInfoLst(fat32Img,directoryObj,f32Reader,currentDir);
                     //print all the short names of the current directory
                     f32Reader.printLsInfo(dirInfo);
@@ -299,8 +305,10 @@ public class fat32Reader {
      * @param dirFile file input
      * @param dirObj directory it us in
      */
-    public void doStat(String dirFile,DirectoryObj dirObj){
+    public void doStat(String dirFile,DirectoryObj dirObj) throws IOException {
         DirEntry dirEntry = dirObj.getDirEntryByName(dirFile.toLowerCase());
+        //int x = getFileLocation(dirEntry);
+        doesFatContinue(fat32img, dirEntry);
         //if dir file name not there don't print
         if(dirEntry != null) {
             System.out.println("Size is " + dirEntry.getFileSize());
@@ -329,26 +337,6 @@ public class fat32Reader {
         return currentDir;
     }
 
-    public void getLS(String fat32) throws IOException {
-        //TODO: Make these fields to reference later
-        int BPB_RootClus = N;
-        /* Given any valid data cluster number N, the sector number of the first sector of that cluster (again
-        relative to sector 0 of the FAT volume) is computed as follows:*/
-        int FirstSectorofCluster = ((N - 2) * BPB_SecPerClus) + FirstDataSector;
-        int rootDir = FirstSectorofCluster * BPB_BytsPerSec;
-        int x = 0;
-        String s = "";
-        ArrayList<String> b = new ArrayList<String>();
-        while(!getBytesChar(fat32, rootDir + x, 32).equals("")){
-            b.add(getBytesChar(fat32, rootDir + x, 11));
-            x += 64;
-        }//12884901882
-        //ArrayList<Integer> ba = getBytesArray(fat32, rootDir + x);
-        for(int i = 1; i < b.size(); i++){
-            System.out.println(b.get(i));
-        }
-        System.out.println(s);
-    }
     /**
      * Converts decimal number to hex number string
      * @param num any number
@@ -372,5 +360,35 @@ public class fat32Reader {
      */
     public void setCurrentDir(int currentDir) {
         this.currentDir = currentDir;
+    }
+
+    public int getFileLocation(DirEntry d, int n){
+        //int n = Integer.parseInt(d.getNextClusHex().split("0x")[1],16);
+        int FATOffset = n * 4;
+        int FirstSectorofCluster = ((n - 2) * BPB_SecPerClus) + FirstDataSector;
+        return FirstSectorofCluster * BPB_BytsPerSec;
+    }
+
+    public void doesFatContinue(String fat32img, DirEntry d) throws IOException {
+        int n = Integer.parseInt(d.getNextClusHex().split("0x")[1],16);
+        int eoc = 268435448;
+        while(n < eoc) {
+            d.addToClusterList(n);
+            System.out.println(n);
+            System.out.println("location value: " + getFileLocation(d, n));
+            int FATOffset = n * 4;
+            int FirstDataSector = BPB_ResvdSecCnt + (BPB_NumFATs * FATsz) + RootDirSectors;
+            int ThisFATSecNum = BPB_ResvdSecCnt + (FATOffset / BPB_BytsPerSec);
+            int thisFATEntOffset = (FATOffset % BPB_BytsPerSec);
+            int fatTable = ThisFATSecNum * BPB_BytsPerSec;
+            n = getBytesData(fat32img, fatTable + thisFATEntOffset, 4);
+        }
+    }
+    public String getFat32img() {
+        return fat32img;
+    }
+
+    public void setFat32img(String fat32img) {
+        this.fat32img = fat32img;
     }
 }
