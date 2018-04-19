@@ -6,6 +6,8 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /*********************************************************
@@ -143,9 +145,9 @@ public class fat32Reader {
                     //run cd helper method
                     //FIXME: find the location of dir and set that to currentDir
                     //TODO: check if it is a directory to cd into by checking that attribute 16
-                    currentDir = 1096704;
                     workingDir = cmdLineArgs[1].toUpperCase();
                     DirEntry dirEntry = directoryObj.getDirEntryByName(workingDir.toLowerCase());
+                    currentDir = dirEntry.getLocation();
                     int clusNum = dirEntry.getNextClusNum();
                     //update directory object
                     directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir,clusNum);
@@ -155,10 +157,10 @@ public class fat32Reader {
                     //TODO: Update ls to be able to
                     //run ls helper methods
                     //Get current directory info
-                    List<Integer> t = new ArrayList<Integer>();
                     dirInfo = f32Reader.getDirInfoLst(fat32Img,directoryObj,f32Reader,currentDir);
                     //print all the short names of the current directory
-                    f32Reader.printLsInfo(dirInfo);
+                    List<String> sortedLS = f32Reader.sortLsInfo(dirInfo);
+                    f32Reader.printLsInfo(sortedLS);
                     System.out.println();
                     break;
                 case "read":
@@ -275,18 +277,31 @@ public class fat32Reader {
      * Print the ls info
      * @param dEntryList
      */
-    public void printLsInfo(List<DirEntry> dEntryList){
+    public void printLsInfo(List<String> dEntryList){
+        for(int i =0;i < dEntryList.size();i++){
+            System.out.print(dEntryList.get(i) + " ");
+        }
+    }
+
+    /**
+     * Print the ls info
+     * @param dEntryList
+     */
+    public List<String> sortLsInfo(List<DirEntry> dEntryList){
         int dEntryLength = dEntryList.size();
+        List<String> sorted = new ArrayList<String>();
         for(int i =0;i < dEntryLength;i++){
             DirEntry dE = dEntryList.get(i);
             char attrNameFirstChar = dE.getDirName().charAt(0);
             int attrNameFirstCharInt = (int)attrNameFirstChar;
             //make sure not to print the volume id or secret/hidden files
             if(dE.getDirAttr() != 8 && dE.getDirAttr() != 2 && attrNameFirstCharInt != 229){
-                System.out.print(dE.getDirName() + " ");
+                sorted.add(dE.getDirName());
             }
 
         }
+        Collections.sort(sorted);
+        return sorted;
     }
 
     /**

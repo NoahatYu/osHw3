@@ -47,13 +47,13 @@ public class DirEntry {
      * @return
      *
     private String getNextClusNum(int hiClus,int loClus){
-        String hiClusHex = Integer.toHexString(hiClus);
-        String loClusHex = Integer.toHexString(loClus);
-        String nextClusNumStr = "0x" + hiClusHex + loClusHex;
-        //int nextClusL = (int)Long.parseLong(nextClusNumStr, 16);
-        return nextClusNumStr;
+    String hiClusHex = Integer.toHexString(hiClus);
+    String loClusHex = Integer.toHexString(loClus);
+    String nextClusNumStr = "0x" + hiClusHex + loClusHex;
+    //int nextClusL = (int)Long.parseLong(nextClusNumStr, 16);
+    return nextClusNumStr;
     }
-*/
+     */
     /**
      * Get directory name
      * @return

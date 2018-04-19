@@ -8,7 +8,7 @@ import java.util.List;
 public class DirectoryObj {
     private List<DirEntry> dEntryLst;
     private HashMap<Integer,String> dirAttrMap;
-    //private int N;
+    private int theN;
 
     /**
      * Constructor to create Directory Object for non-root
@@ -27,6 +27,7 @@ public class DirectoryObj {
         dirAttrMap.put(16,"ATTR_DIRECTORY");
         dirAttrMap.put(32,"ATTR_ARCHIVE");
         try {
+            theN = n;
             getDirInfo(fat32,f32,dir,n);
         } catch (IOException e) {
             e.printStackTrace();
@@ -49,11 +50,13 @@ public class DirectoryObj {
         int offNum = 0;
         int varNum = 0;
         boolean done = false;
+        int getDot = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
+        if(theN != 2 && getDot != 46){
+            varNum += 32;
+        }
         while(!done) {
             int dirNameNumStart = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
-            float NAN = f32.getBytesData(fat32,currentDir + varNum + offNum,8);
-            boolean isNaN = Float.isNaN(NAN);
-            int getDot = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
+            getDot = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
             int getDotDot = f32.getBytesData(fat32,currentDir + varNum + offNum,2);
             String DIR_Name = f32.getBytesChar(fat32, currentDir + varNum + offNum, 8);
             offNum += 8;
@@ -90,10 +93,8 @@ public class DirectoryObj {
                     int nextClusNum = getNextClusNum(DIR_FstClusHI,DIR_FstClusLO);
                     //N = nextClusNum;
                     int fileLoc = getFileLocation(f32,nextClusNum);
-                    if(!isNaN) {
-                        DirEntry dEntry = new DirEntry(DirNameFull, DIR_FstClusHI, DIR_FstClusLO, DIR_Attr, dirEntryStr, DIR_fileSize, nextClusNum, fileLoc);
-                        dEntryLst.add(dEntry);
-                    }
+                    DirEntry dEntry = new DirEntry(DirNameFull, DIR_FstClusHI, DIR_FstClusLO, DIR_Attr, dirEntryStr, DIR_fileSize, nextClusNum, fileLoc);
+                    dEntryLst.add(dEntry);
 
                 }
                 offNum = 0;//reset offset number
