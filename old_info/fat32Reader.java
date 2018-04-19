@@ -142,8 +142,12 @@ public class fat32Reader {
                 case "cd":
                     System.out.println("Going to cd");
                     //run cd helper method
+<<<<<<< HEAD
                     currentDir = 1096704;
                     workingDir = cmdLineArgs[1].toUpperCase();
+=======
+                    currentDir = 1096704 + 96;
+>>>>>>> 19df37c32489e8266e2b476fae5e8ef3c55a1403
                     break;
                 case "ls":
                     System.out.println("Going to ls");
@@ -307,6 +311,10 @@ public class fat32Reader {
      */
     public void doStat(String dirFile,DirectoryObj dirObj) throws IOException {
         DirEntry dirEntry = dirObj.getDirEntryByName(dirFile.toLowerCase());
+<<<<<<< HEAD
+=======
+        String fat32img = "/home/shalom/Desktop/OSHW#3/fat32.img";
+>>>>>>> 19df37c32489e8266e2b476fae5e8ef3c55a1403
         //int x = getFileLocation(dirEntry);
         doesFatContinue(fat32img, dirEntry);
         //if dir file name not there don't print
@@ -373,7 +381,10 @@ public class fat32Reader {
         int n = Integer.parseInt(d.getNextClusHex().split("0x")[1],16);
         int eoc = 268435448;
         while(n < eoc) {
+<<<<<<< HEAD
             d.addToClusterList(n);
+=======
+>>>>>>> 19df37c32489e8266e2b476fae5e8ef3c55a1403
             System.out.println(n);
             System.out.println("location value: " + getFileLocation(d, n));
             int FATOffset = n * 4;
@@ -384,6 +395,7 @@ public class fat32Reader {
             n = getBytesData(fat32img, fatTable + thisFATEntOffset, 4);
         }
     }
+<<<<<<< HEAD
     public String getFat32img() {
         return fat32img;
     }
@@ -391,4 +403,6 @@ public class fat32Reader {
     public void setFat32img(String fat32img) {
         this.fat32img = fat32img;
     }
+=======
+>>>>>>> 19df37c32489e8266e2b476fae5e8ef3c55a1403
 }
