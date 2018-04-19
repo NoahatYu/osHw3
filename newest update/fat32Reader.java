@@ -145,18 +145,35 @@ public class fat32Reader {
                     //run cd helper method
                     //FIXME: find the location of dir and set that to currentDir
                     //TODO: check if it is a directory to cd into by checking that attribute 16
+                    String previousDir = workingDir;
                     workingDir = cmdLineArgs[1].toUpperCase();
                     DirEntry dirEntry = directoryObj.getDirEntryByName(workingDir.toLowerCase());
-                    int clusNum = dirEntry.getNextClusNum();
-                    if(dirEntry.getDirName().equals("..") && clusNum == 0){
-                        clusNum = 2;
-                        currentDir = rootDir;
+                    if(dirEntry == null){
+                        System.out.println("Error: File/Directory does not exist");
+                        workingDir = previousDir;
+                    }
+                    else if(dirEntry.getDirAttr() == 16) {
+                        int clusNum = dirEntry.getNextClusNum();
+                        // If we cd .. back into root directory, we set n = 2, because the root directory is 2.
+                        if (dirEntry.getDirName().equals("..") && clusNum == 0) {
+                            clusNum = 2;
+                            currentDir = rootDir;
+                        } else {
+                            currentDir = dirEntry.getLocation();
+                        }
+                        //update directory object
+                        directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, clusNum);
                     }
                     else{
-                        currentDir = dirEntry.getLocation();
+                        System.out.println("Error: File is not a directory");
+                        workingDir = previousDir;
                     }
-                    //update directory object
-                    directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir,clusNum);
+                    if(workingDir.equals(".")){
+                        workingDir = previousDir;
+                    }
+                    if(workingDir.equals("..")){
+                        workingDir = "";
+                    }
                     break;
                 case "ls":
                     System.out.println("Going to ls");
