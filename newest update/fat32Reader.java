@@ -147,8 +147,14 @@ public class fat32Reader {
                     //TODO: check if it is a directory to cd into by checking that attribute 16
                     workingDir = cmdLineArgs[1].toUpperCase();
                     DirEntry dirEntry = directoryObj.getDirEntryByName(workingDir.toLowerCase());
-                    currentDir = dirEntry.getLocation();
                     int clusNum = dirEntry.getNextClusNum();
+                    if(dirEntry.getDirName().equals("..") && clusNum == 0){
+                        clusNum = 2;
+                        currentDir = rootDir;
+                    }
+                    else{
+                        currentDir = dirEntry.getLocation();
+                    }
                     //update directory object
                     directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir,clusNum);
                     break;
