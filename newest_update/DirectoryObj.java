@@ -1,5 +1,3 @@
-package com.company;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,10 +114,37 @@ public class DirectoryObj {
             //update currentClus
             currentClus = getFileLocation(f32, clusters.get(i));
             getClusInfo(fat32,f32,currentClus);
-
-
         }
+    }
 
+    public String getReadInfo(String fat32,fat32Reader f32,int n, int start, int end) throws IOException {
+        List<Integer> clusters = getClusters(fat32,f32,n);
+        int numOfCluses = clusters.size();
+        int x = f32.getBPB_BytsPerSec();
+        int loc = 0;
+        int o = start % x;
+        int z = end % x;
+        int s = (int) Math.floor(start/x);
+        int e = (int) Math.floor(end /x) + 1;
+        String read = "";
+        if(e > numOfCluses){
+            System.out.println("Error: attempt to read beyond end of file");
+        }
+        else {
+            for (int i = s; i < e; i++) {
+                //update currentClus
+                if(i != e - 1) {
+                    loc = getFileLocation(f32, clusters.get(i));
+                    read += f32.getBytesChar(fat32, loc + o, x);
+                    o = 0;
+                }
+                else {
+                    loc = getFileLocation(f32, clusters.get(i));
+                    read += f32.getBytesChar(fat32, loc + o, z);
+                }
+            }
+        }
+        return read;
     }
 
     public List<Integer> getClusters(String fat32img,fat32Reader f32,int N) throws IOException {
