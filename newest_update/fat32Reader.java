@@ -190,16 +190,24 @@ public class fat32Reader {
                     System.out.println("Going to read");
                     String file = cmdLineArgs[1];
                     dirEntry = directoryObj.getDirEntryByName(file.toLowerCase());
-                    int loc = dirEntry.getLocation();
-                    String offset = cmdLineArgs[2];
-                    int o = Integer.parseInt(offset);
-                    String size = cmdLineArgs[3];
-                    int s = Integer.parseInt(size);
-                    List<Integer> clus = directoryObj.getClusters(fat32Img, f32Reader, dirEntry.getNextClusNum());
-                    String read = directoryObj.getReadInfo(fat32Img, f32Reader, dirEntry.getNextClusNum(),o,s);
-                    //String read = f32Reader.getBytesChar(fat32Img, loc + o, s);
-                    System.out.println(read);
-                    //run read helper method
+                    if (dirEntry == null) {
+                        System.out.println("Error: File/Directory does not exist");
+                    }
+                    else if(cmdLineArgs.length < 4){
+                        System.out.println("Error: Not enough arguements");
+                    }
+                    else {
+                        int loc = dirEntry.getLocation();
+                        String offset = cmdLineArgs[2];
+                        int o = Integer.parseInt(offset);
+                        String size = cmdLineArgs[3];
+                        int s = Integer.parseInt(size);
+                        List<Integer> clus = directoryObj.getClusters(fat32Img, f32Reader, dirEntry.getNextClusNum());
+                        String read = directoryObj.getReadInfo(fat32Img, f32Reader, dirEntry.getNextClusNum(), o, s, dirEntry);
+                        //String read = f32Reader.getBytesChar(fat32Img, loc + o, s);
+                        System.out.println(read);
+                        //run read helper method
+                    }
                     break;
                 case "volume":
                     System.out.println("Going to volume");

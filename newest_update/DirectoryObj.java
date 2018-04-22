@@ -32,7 +32,7 @@ public class DirectoryObj {
         }
 
     }
-    
+
     /**
      * Loop through fat32 image of the root directory and create DirEntry objects and add them to a list
      * @param fat32
@@ -132,7 +132,7 @@ public class DirectoryObj {
      * @return read
      * @throws IOException
      */
-    public String getReadInfo(String fat32,fat32Reader f32,int n, int start, int end) throws IOException {
+    public String getReadInfo(String fat32,fat32Reader f32,int n, int start, int end, DirEntry dirEntry) throws IOException {
         List<Integer> clusters = getClusters(fat32,f32,n);
         int numOfCluses = clusters.size();
         int x = f32.getBPB_BytsPerSec();
@@ -142,7 +142,7 @@ public class DirectoryObj {
         int s = (int) Math.floor(start/x);
         int e = (int) Math.floor(end /x) + 1;
         String read = "";
-        if(e > numOfCluses){
+        if(loc + end > dirEntry.getFileSize() || e > numOfCluses){
             System.out.println("Error: attempt to read beyond end of file");
         }
         else {
@@ -195,7 +195,7 @@ public class DirectoryObj {
         return clustersSpan;
 
     }
-    
+
     /**
      * Get entry obj by name of directory entry
      * @param dirName
@@ -226,7 +226,7 @@ public class DirectoryObj {
     public DirEntry getDirEntry(int dirNum){
         return dEntryLst.get(dirNum);
     }
-    
+
     /**
      * Gets the next cluster number value.
      * @param hiClus hi cluster
