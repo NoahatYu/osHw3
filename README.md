@@ -1,5 +1,5 @@
 # osHw3 Fat32 Utility Reader
-Operating Systems Homework3 first submission
+Operating Systems Homework3 Final Submission
 by Noah Potash and Shalom Azar
 
  
@@ -16,14 +16,16 @@ Instructions for compiling program:
 
 Challenges encountered along the way:
 
-	• Not understanding the fat32 spec without reading it over several time.
-	• Figuring out where the root directory and the FAT was.
+	• Not understanding the fat32 spec without reading it over several times.
+	• Figuring out where the root directory, the current directory, and the FAT were.
 	• Dealing with signed and unsigned ints and converting to little endian in java.
+	• Reading across multiple clusters.
 
 Sources used:
 	
 	• https://www.pjrc.com/tech/8051/ide/fat32.html
 	• Fat32 spec pdf
 	• Used a hexeditor to look at the fat32 image
+	• http://slideplayer.com/slide/3592883/
 
 

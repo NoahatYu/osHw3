@@ -32,10 +32,7 @@ public class DirectoryObj {
         }
 
     }
-
-
-
-
+    
     /**
      * Loop through fat32 image of the root directory and create DirEntry objects and add them to a list
      * @param fat32
@@ -105,6 +102,14 @@ public class DirectoryObj {
         }
     }
 
+    /**
+     * Gets all directory info across clusters
+     * @param fat32
+     * @param f32
+     * @param currentDir
+     * @param n
+     * @throws IOException
+     */
     public void getDirInfo(String fat32,fat32Reader f32,int currentDir,int n) throws IOException {
         //int locationLocation = getFileLocation(f32,N);
         List<Integer> clusters = getClusters(fat32,f32,n);
@@ -117,6 +122,16 @@ public class DirectoryObj {
         }
     }
 
+    /**
+     * Gets the string from the start byte to the end byte
+     * @param fat32
+     * @param f32
+     * @param n
+     * @param start
+     * @param end
+     * @return read
+     * @throws IOException
+     */
     public String getReadInfo(String fat32,fat32Reader f32,int n, int start, int end) throws IOException {
         List<Integer> clusters = getClusters(fat32,f32,n);
         int numOfCluses = clusters.size();
@@ -147,6 +162,14 @@ public class DirectoryObj {
         return read;
     }
 
+    /**
+     * Gets the list of clusters
+     * @param fat32img
+     * @param f32
+     * @param N
+     * @return clusterSpan
+     * @throws IOException
+     */
     public List<Integer> getClusters(String fat32img,fat32Reader f32,int N) throws IOException {
         List<Integer> clustersSpan = new ArrayList<Integer>();
         int BPB_NumFATs = f32.getBPB_NumFATs();
@@ -172,6 +195,7 @@ public class DirectoryObj {
         return clustersSpan;
 
     }
+    
     /**
      * Get entry obj by name of directory entry
      * @param dirName
@@ -202,6 +226,7 @@ public class DirectoryObj {
     public DirEntry getDirEntry(int dirNum){
         return dEntryLst.get(dirNum);
     }
+    
     /**
      * Gets the next cluster number value.
      * @param hiClus hi cluster
@@ -217,6 +242,12 @@ public class DirectoryObj {
         return nextClusNum;
     }
 
+    /**
+     * Gets the location in bytes of the beginning of a cluster
+     * @param f32
+     * @param n
+     * @return cluster location types bytes per second
+     */
     public int getFileLocation(fat32Reader f32, int n){
         int BPB_BytsPerSec = f32.getBPB_BytsPerSec();
         int BPB_SecPerClus = f32.getBPB_SecPerClus();

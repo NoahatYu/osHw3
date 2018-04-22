@@ -34,8 +34,6 @@ public class DirEntry {
         clusters = new ArrayList<Integer>();
         this.nextClusNum = nextClusNum;
         nextClusNumHex = "0x" + Integer.toHexString(this.nextClusNum);
-
-
     }
 
     /**
@@ -85,11 +83,18 @@ public class DirEntry {
         return fileSize;
     }
 
-
+    /**
+     * Adds a cluster to a list
+     * @param val
+     */
     public void addToClusterList(int val){
         clusters.add(val);
     }
 
+    /**
+     * Gets the cluster list
+     * @return clusters
+     */
     public List<Integer> getClusters() {
         return clusters;
     }
@@ -102,10 +107,18 @@ public class DirEntry {
         return nextClusNumHex;
     }
 
+    /**
+     * Gets the next cluster number in decimal
+     * @return next cluster number in decimal
+     */
     public int getNextClusNum() {
         return nextClusNum;
     }
 
+    /**
+     * Gets the location of the current entry
+     * @return location
+     */
     public int getLocation() {
         return location;
     }

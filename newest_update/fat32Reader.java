@@ -417,7 +417,6 @@ public class fat32Reader {
 
     /**
      * Set root directory
-     *
      * @param rootDir
      */
     public void setRootDir(int rootDir) {
@@ -426,91 +425,170 @@ public class fat32Reader {
 
     /**
      * Set current directory
-     *
      * @param currentDir
      */
     public void setCurrentDir(int currentDir) {
         this.currentDir = currentDir;
     }
 
+    /**
+     * Gets the fat32img field
+     * @return fat32img
+     */
     public String getFat32img() {
         return fat32img;
     }
 
+    /**
+     * Sets the fat32img field
+     * @param fat32img
+     */
     public void setFat32img(String fat32img) {
         this.fat32img = fat32img;
     }
 
+    /**
+     * Gets BPB_ResvdSecCnt
+     * @return BPB_ResvdSecCnt
+     */
     public int getBPB_ResvdSecCnt() {
         return BPB_ResvdSecCnt;
     }
 
+    /**
+     * Gets BPB_NumFATs
+     * @return BPB_NumFATs
+     */
     public int getBPB_NumFATs() {
         return BPB_NumFATs;
     }
 
+    /**
+     * Gets FATsz
+     * @return FATsz
+     */
     public int getFATsz() {
         return FATsz;
     }
 
+    /**
+     * Gets BPB_RootEntCnt
+     * @return BPB_RootEntCnt
+     */
     public int getBPB_RootEntCnt() {
         return BPB_RootEntCnt;
     }
 
+    /**
+     * Gets BPB_BytsPerSec
+     * @return BPB_BytsPerSec
+     */
     public int getBPB_BytsPerSec() {
         return BPB_BytsPerSec;
     }
 
+    /**
+     * Gets RootDirSectors
+     * @return RootDirSectors
+     */
     public int getRootDirSectors() {
         return RootDirSectors;
     }
 
+    /**
+     * Gets FirstDataSector
+     * @return FirstDataSector
+     */
     public int getFirstDataSector() {
         return FirstDataSector;
     }
 
+    /**
+     * Gets BPB_SecPerClus
+     * @return BPB_SecPerClus
+     */
     public int getBPB_SecPerClus() {
         return BPB_SecPerClus;
     }
 
+    /**
+     * Gets BPB_RootClus
+     * @return BPB_RootClus
+     */
     public int getBPB_RootClus() {
         return BPB_RootClus;
     }
 
+    /**
+     * Gets N
+     * @return N
+     */
     public int getN() {
         return N;
     }
 
+    /**
+     * Sets N
+     * @param n
+     */
     public void setN(int n) {
         N = n;
     }
 
+    /**
+     * Gets RootClus
+     * @return RootClus
+     */
     public int getRootClus() {
         return RootClus;
     }
 
+    /**
+     * Sets rootClus
+     * @param rootClus
+     */
     public void setRootClus(int rootClus) {
         RootClus = rootClus;
     }
 
+    /**
+     * Gets ThisFATSecNum
+     * @return ThisFATSecNum
+     */
     public int getThisFATSecNum() {
         return ThisFATSecNum;
     }
 
-
+    /**
+     * Gets ThisFATEntOffset
+     * @return ThisFATEntOffset
+     */
     public int getThisFATEntOffset() {
         return ThisFATEntOffset;
     }
 
+    /**
+     * Gets FirstSectorofCluster
+     * @return FirstSectorofCluster
+     */
     public int getFirstSectorofCluster() {
         return FirstSectorofCluster;
     }
 
-
+    /**
+     * Gets fatTable
+     * @return fatTable
+     */
     public int getFatTable() {
         return fatTable;
     }
 
+    /**
+     * Checks if it already exists in the array
+     * @param list
+     * @param name
+     * @return true if exist, if not it returns false
+     */
     private boolean strContainsArr(List<String> list, String name) {
         for (int i = 0; i < list.size(); i++) {
             if(list.get(i).equals(name)){
