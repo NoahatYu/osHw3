@@ -147,7 +147,9 @@ public class fat32Reader {
                         //workingDir--;
                     } else if (dirEntry.getDirAttr() == 16) {
                         if (currentWorkingDirName.equals("..")) {
-                            workingDir--;
+                            if(!currentWorkingDirName.equals("")){
+                                workingDir = workingDir - 2;
+                            }
 
                         } else if (currentWorkingDirName.equals(".")) {
                             //do nothing
@@ -155,7 +157,6 @@ public class fat32Reader {
                             boolean isInArr = f32Reader.strContainsArr(workingDirLst,currentWorkingDirName);
                             if(!isInArr) {
                                 workingDirLst.add(currentWorkingDirName);
-                                workingDir++;
                             }
                         }
                         int clusNum = dirEntry.getNextClusNum();
@@ -168,6 +169,7 @@ public class fat32Reader {
                         }
                         //update directory object
                         directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, clusNum);
+                        workingDir++;
                     } else {
                         System.out.println("Error: File is not a directory");
                         //workingDir = previousDir;
