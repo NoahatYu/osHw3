@@ -1,4 +1,4 @@
-//package com.company;
+package com.company;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -45,18 +45,18 @@ public class fat32Reader {
         //Mapping a file into memory
         out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, 10485760/*10MB*/);
         //TODO: Clean up constructor and make it into a method
-        BPB_ResvdSecCnt = getBytesData(fat32,14,2);
-        BPB_NumFATs = getBytesData(fat32,16,1);
-        FATsz = getBytesData(fat32,36,4);
-        BPB_RootEntCnt = getBytesData(fat32,17,2);
-        BPB_BytsPerSec = getBytesData(fat32,11,2);
-        BPB_SecPerClus = getBytesData(fat32,13,1);
-        RootClus = N = getBytesData(fat32,44,4);
-        int BPB_TotSec32 = getBytesData(fat32,32,4);
+        BPB_ResvdSecCnt = getBytesData(fat32, 14, 2);
+        BPB_NumFATs = getBytesData(fat32, 16, 1);
+        FATsz = getBytesData(fat32, 36, 4);
+        BPB_RootEntCnt = getBytesData(fat32, 17, 2);
+        BPB_BytsPerSec = getBytesData(fat32, 11, 2);
+        BPB_SecPerClus = getBytesData(fat32, 13, 1);
+        RootClus = N = getBytesData(fat32, 44, 4);
+        int BPB_TotSec32 = getBytesData(fat32, 32, 4);
         int DataSec = BPB_TotSec32 - (BPB_ResvdSecCnt + (BPB_NumFATs * FATsz) + RootDirSectors);
-        int CountofClusters = (int)Math.floor(DataSec / BPB_SecPerClus);
+        int CountofClusters = (int) Math.floor(DataSec / BPB_SecPerClus);
         //the count of sectors occupied by the root directory.
-        RootDirSectors = ((BPB_RootEntCnt * 32) + (BPB_BytsPerSec -1)) / BPB_BytsPerSec;
+        RootDirSectors = ((BPB_RootEntCnt * 32) + (BPB_BytsPerSec - 1)) / BPB_BytsPerSec;
         int FATOffset = N * 4;
         FirstDataSector = BPB_ResvdSecCnt + (BPB_NumFATs * FATsz) + RootDirSectors;
         /* Given any valid data cluster number N, the sector number of the first sector of that cluster(again
@@ -74,6 +74,7 @@ public class fat32Reader {
 
     /**
      * Main Method
+     *
      * @param args
      * @throws IOException
      */
@@ -91,12 +92,12 @@ public class fat32Reader {
         //f32Reader.getBytesData(fat32Img,11,2);
         List<DirEntry> dirInfo;
         DirectoryObj directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.N);
-
-        List<Integer> workingDirLst = new ArrayList<Integer>();
-        workingDirLst.add("");
-        int workingDir = 0
+        List<String> workingDirLst = new ArrayList<String>();
+        String currentWorkingDirName = "";
+        workingDirLst.add(currentWorkingDirName);
+        int workingDir = 0;
         /* Main loop. */
-        while(true) {
+        while (true) {
             System.out.print("/" + workingDirLst.get(workingDir) + "] ");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String cmdLine = null;
@@ -117,10 +118,10 @@ public class fat32Reader {
                 case "stat":
                     System.out.println("Going to stat");
                     //run stat helper method
-                    dirInfo = f32Reader.getDirInfoLst(fat32Img,directoryObj,f32Reader,currentDir);
-                    if(cmdLineArgs.length > 1) {
+                    dirInfo = f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, currentDir);
+                    if (cmdLineArgs.length > 1) {
                         f32Reader.doStat(cmdLineArgs[1], directoryObj);
-                    }else {
+                    } else {
                         System.out.println("Error: no file/directory was inputted");
                     }
                     break;
@@ -128,10 +129,9 @@ public class fat32Reader {
                     System.out.println("Going to size");
                     //run size helper method
                     //directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
-                    if(cmdLineArgs.length > 1 && directoryObj.getDirEntryByName(cmdLineArgs[1]) != null) {
+                    if (cmdLineArgs.length > 1 && directoryObj.getDirEntryByName(cmdLineArgs[1]) != null) {
                         System.out.println("Size is " + directoryObj.getDirEntryByName(cmdLineArgs[1]).getFileSize());
-                    }
-                    else {
+                    } else {
                         System.out.println("Error: File/directory does not exist");
                     }
                     break;
@@ -140,18 +140,25 @@ public class fat32Reader {
                     //run cd helper method
                     //FIXME: find the location of dir and set that to currentDir
                     //TODO: check if it is a directory to cd into by checking that attribute 16
-                    //String previousDir = workingDir;
-
-                    //workingDir = cmdLineArgs[1].toUpperCase();
-                    workingDirLst.add(cmdLineArgs[1].toUpperCase());
-                    workingDir++;
-                    DirEntry dirEntry = directoryObj.getDirEntryByName(workingDir.toLowerCase());
-                    if(dirEntry == null){
+                    currentWorkingDirName = cmdLineArgs[1].toUpperCase();
+                    DirEntry dirEntry = directoryObj.getDirEntryByName(cmdLineArgs[1].toLowerCase());
+                    if (dirEntry == null) {
                         System.out.println("Error: File/Directory does not exist");
                         //workingDir = previousDir;
-                        workingDir--;
-                    }
-                    else if(dirEntry.getDirAttr() == 16) {
+                        //workingDir--;
+                    } else if (dirEntry.getDirAttr() == 16) {
+                        if (currentWorkingDirName.equals("..")) {
+                            workingDir--;
+
+                        } else if (currentWorkingDirName.equals(".")) {
+                            //do nothing
+                        } else {
+                            boolean isInArr = f32Reader.strContainsArr(workingDirLst,currentWorkingDirName);
+                            if(!isInArr) {
+                                workingDirLst.add(currentWorkingDirName);
+                                workingDir++;
+                            }
+                        }
                         int clusNum = dirEntry.getNextClusNum();
                         // If we cd .. back into root directory, we set n = 2, because the root directory is 2.
                         if (dirEntry.getDirName().equals("..") && clusNum == 0) {
@@ -162,16 +169,9 @@ public class fat32Reader {
                         }
                         //update directory object
                         directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, clusNum);
-                    }
-                    else{
+                    } else {
                         System.out.println("Error: File is not a directory");
                         //workingDir = previousDir;
-                    }
-                    if(workingDir.equals(".")){
-                        //workingDir = previousDir;
-                    }
-                    if(workingDir.equals("..")){
-                        workingDir--;
                     }
                     break;
                 case "ls":
@@ -179,7 +179,7 @@ public class fat32Reader {
                     //TODO: Update ls to be able to
                     //run ls helper methods
                     //Get current directory info
-                    dirInfo = f32Reader.getDirInfoLst(fat32Img,directoryObj,f32Reader,currentDir);
+                    dirInfo = f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, currentDir);
                     //print all the short names of the current directory
                     List<String> sortedLS = f32Reader.sortLsInfo(dirInfo);
                     f32Reader.printLsInfo(sortedLS);
@@ -194,7 +194,7 @@ public class fat32Reader {
                     int o = Integer.parseInt(offset);
                     String size = cmdLineArgs[3];
                     int s = Integer.parseInt(size);
-                    String read = f32Reader.getBytesChar(fat32Img,loc + o, s);
+                    String read = f32Reader.getBytesChar(fat32Img, loc + o, s);
                     System.out.println(read);
                     //run read helper method
                     break;
@@ -202,7 +202,7 @@ public class fat32Reader {
                     System.out.println("Going to volume");
                     //run read helper method
                     //directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
-                    dirInfo = f32Reader.getDirInfoLst(fat32Img,directoryObj,f32Reader,rootDir);
+                    dirInfo = f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, rootDir);
                     f32Reader.volumeInfo(dirInfo);
                     break;
                 case "quit":
@@ -221,6 +221,7 @@ public class fat32Reader {
 
     /**
      * Prints info when info command is called.
+     *
      * @param fat32
      * @throws IOException
      */
@@ -236,12 +237,13 @@ public class fat32Reader {
 
     /**
      * Gets byte data from fat32 Image
+     *
      * @param fat32Img
      * @param offset
      * @param size
      * @throws IOException
      */
-    public int getBytesData(String fat32Img,int offset, int size) throws IOException {
+    public int getBytesData(String fat32Img, int offset, int size) throws IOException {
 
         //RandomAccessFile memoryMappedFile = new RandomAccessFile(fat32Img, "rw");
 
@@ -249,13 +251,13 @@ public class fat32Reader {
         //MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, 10485760/*10MB*/);
 
         //reading from memory file in Java little endian
-        double exp = Math.pow(256,size - 1);
+        double exp = Math.pow(256, size - 1);
         int eBit = 0;
-        for (int i = offset + size - 1; i >= offset; i--){
+        for (int i = offset + size - 1; i >= offset; i--) {
             //Covert number to unsigned if negative.
             int unsignedInt = out.get(i) & 0xFF;
             eBit += unsignedInt * exp;
-            exp = exp/256;
+            exp = exp / 256;
         }
 
         return eBit;
@@ -263,9 +265,10 @@ public class fat32Reader {
 
     /**
      * Gets the bytes from the image and converts them to chars
+     *
      * @param fat32Img string fat 32 image
-     * @param offset offset in image
-     * @param size number of bytes
+     * @param offset   offset in image
+     * @param size     number of bytes
      * @return String that was coverts from bytes
      * @throws IOException
      */
@@ -293,40 +296,43 @@ public class fat32Reader {
 
     /**
      * Get current directory info
+     *
      * @param fat32
      * @param f32Reader
      * @param currentDir
      * @return
      * @throws IOException
      */
-    public List<DirEntry> getDirInfoLst(String fat32,DirectoryObj dObj,fat32Reader f32Reader, int currentDir) throws IOException {
+    public List<DirEntry> getDirInfoLst(String fat32, DirectoryObj dObj, fat32Reader f32Reader, int currentDir) throws IOException {
         List<DirEntry> dEntryList = dObj.getdEntryLst();
         return dEntryList;
     }
 
     /**
      * Print the ls info
+     *
      * @param dEntryList
      */
-    public void printLsInfo(List<String> dEntryList){
-        for(int i =0;i < dEntryList.size();i++){
+    public void printLsInfo(List<String> dEntryList) {
+        for (int i = 0; i < dEntryList.size(); i++) {
             System.out.print(dEntryList.get(i) + " ");
         }
     }
 
     /**
      * Print the ls info
+     *
      * @param dEntryList
      */
-    public List<String> sortLsInfo(List<DirEntry> dEntryList){
+    public List<String> sortLsInfo(List<DirEntry> dEntryList) {
         int dEntryLength = dEntryList.size();
         List<String> sorted = new ArrayList<String>();
-        for(int i =0;i < dEntryLength;i++){
+        for (int i = 0; i < dEntryLength; i++) {
             DirEntry dE = dEntryList.get(i);
             char attrNameFirstChar = dE.getDirName().charAt(0);
-            int attrNameFirstCharInt = (int)attrNameFirstChar;
+            int attrNameFirstCharInt = (int) attrNameFirstChar;
             //make sure not to print the volume id or secret/hidden files
-            if(dE.getDirAttr() != 8 && dE.getDirAttr() != 2 && attrNameFirstCharInt != 229){
+            if (dE.getDirAttr() != 8 && dE.getDirAttr() != 2 && attrNameFirstCharInt != 229) {
                 sorted.add(dE.getDirName());
             }
 
@@ -337,41 +343,43 @@ public class fat32Reader {
 
     /**
      * Print the volume id
+     *
      * @param dEntryList
      */
-    public void volumeInfo(List<DirEntry> dEntryList){
+    public void volumeInfo(List<DirEntry> dEntryList) {
         int dEntryLength = dEntryList.size();
         boolean volID = false;
-        for(int i =0;i < dEntryLength;i++){
+        for (int i = 0; i < dEntryLength; i++) {
             DirEntry dE = dEntryList.get(i);
             //make sure to print the volume id
-            if(dE.getDirAttr() == 8){
+            if (dE.getDirAttr() == 8) {
                 volID = true;
                 System.out.println(dE.getDirName());
                 break;
             }
 
         }
-        if(!volID){
-            System.out.println("Error: Volume ID does not exist")
+        if (!volID) {
+            System.out.println("Error: Volume ID does not exist");
         }
     }
 
     /**
      * Prints the info for stat
+     *
      * @param dirFile file input
-     * @param dirObj directory it us in
+     * @param dirObj  directory it us in
      */
-    public void doStat(String dirFile,DirectoryObj dirObj) throws IOException {
+    public void doStat(String dirFile, DirectoryObj dirObj) throws IOException {
         DirEntry dirEntry = dirObj.getDirEntryByName(dirFile.toLowerCase());
         //int x = getFileLocation(dirEntry);
         //getClusters(fat32img, dirEntry);
         //if dir file name not there don't print
-        if(dirEntry != null) {
+        if (dirEntry != null) {
             System.out.println("Size is " + dirEntry.getFileSize());
             System.out.println("Attributes " + dirEntry.getDirAttrName());
             System.out.println("Next cluster number is " + dirEntry.getNextClusNumHex());
-        }else{
+        } else {
             //print error message
             System.out.println("Error: file/directory does not exist");
         }
@@ -380,6 +388,7 @@ public class fat32Reader {
 
     /**
      * Get root directory offset
+     *
      * @return root dir offset
      */
     public int getRootDir() {
@@ -388,23 +397,26 @@ public class fat32Reader {
 
     /**
      * Gets the current working directory
+     *
      * @return current working directory
      */
-    public int getCurrentDir(){
+    public int getCurrentDir() {
         return currentDir;
     }
 
     /**
      * Converts decimal number to hex number string
+     *
      * @param num any number
      * @return String hex of num
      */
-    public String hexer(int num){
+    public String hexer(int num) {
         return "0x" + Integer.toHexString(num);
     }
 
     /**
      * Set root directory
+     *
      * @param rootDir
      */
     public void setRootDir(int rootDir) {
@@ -413,6 +425,7 @@ public class fat32Reader {
 
     /**
      * Set current directory
+     *
      * @param currentDir
      */
     public void setCurrentDir(int currentDir) {
@@ -493,8 +506,17 @@ public class fat32Reader {
     }
 
 
-    public int getFatTable(){
+    public int getFatTable() {
         return fatTable;
     }
 
+    private boolean strContainsArr(List<String> list, String name) {
+        for (int i = 0; i < list.size(); i++) {
+            if(list.get(i).equals(name)){
+                return true;
+            }
+
+        }
+        return false;
+    }
 }
