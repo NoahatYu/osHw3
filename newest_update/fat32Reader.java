@@ -169,7 +169,9 @@ public class fat32Reader {
                         }
                         //update directory object
                         directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, clusNum);
-                        workingDir++;
+                        if(!currentWorkingDirName.equals(".")){
+                            workingDir++;
+                        }
                     } else {
                         System.out.println("Error: File is not a directory");
                         //workingDir = previousDir;
@@ -214,7 +216,8 @@ public class fat32Reader {
                     //run read helper method
                     //directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
                     dirInfo = f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, rootDir);
-                    f32Reader.volumeInfo(dirInfo);
+                    //f32Reader.volumeInfo(dirInfo);
+                    System.out.println(f32Reader.getVolIDName().toUpperCase());
                     break;
                 case "quit":
                     System.out.println("Quitting");
@@ -357,7 +360,7 @@ public class fat32Reader {
      *
      * @param dEntryList
      */
-    public void volumeInfo(List<DirEntry> dEntryList) {
+    public void getVolumeInfo(List<DirEntry> dEntryList) {
         int dEntryLength = dEntryList.size();
         boolean volID = false;
         for (int i = 0; i < dEntryLength; i++) {
@@ -365,10 +368,9 @@ public class fat32Reader {
             //make sure to print the volume id
             if (dE.getDirAttr() == 8) {
                 volID = true;
-                System.out.println(dE.getDirName());
+                volIDName = dE.getDirName();
                 break;
             }
-
         }
         if (!volID) {
             System.out.println("Error: Volume ID does not exist");

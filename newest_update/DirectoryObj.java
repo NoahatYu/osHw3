@@ -66,9 +66,9 @@ public class DirectoryObj {
             int DIR_fileSize = f32.getBytesData(fat32,currentDir + varNum + offNum,4);
 
             //If there are 32 bytes of 0s then that is the end of the directory entries
-            if (DIR_Name.equals("") || varNum >= 512) {
+            if (DIR_Name.equals("") || varNum >= f32.getBPB_BytsPerSec() * f32.getBPB_SecPerClus()) {
                 int endOfNames = f32.getBytesData(fat32, currentDir + varNum + offNum, 32);
-                if (endOfNames == 0 || varNum >= 512 ) {
+                if (endOfNames == 0 || varNum >= f32.getBPB_BytsPerSec() * f32.getBPB_SecPerClus() ) {
                     done = true;
                 }
             } else {
