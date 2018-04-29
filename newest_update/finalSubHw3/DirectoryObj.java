@@ -196,6 +196,19 @@ public class DirectoryObj {
     }
 
     /**
+     * Gets fat table
+     * @param f32
+     * @return fat_table
+     */
+    public int getFatTable(fat32Reader f32){
+        int BPB_ResvdSecCnt = f32.getBPB_ResvdSecCnt();
+        int BPB_BytsPerSec = f32.getBPB_BytsPerSec();
+        int FATOffset = 0;
+        int ThisFATSecNum = BPB_ResvdSecCnt + (FATOffset / BPB_BytsPerSec);
+        return ThisFATSecNum * f32.getBytesPerClus();
+    }
+
+    /**
      * Get entry obj by name of directory entry
      * @param dirName
      * @return

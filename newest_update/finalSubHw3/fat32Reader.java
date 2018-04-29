@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.ArrayList;
@@ -218,9 +219,16 @@ public class fat32Reader {
                     System.out.println("Going to volume");
                     //run read helper method
                     //directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
-                    dirInfo = f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, rootDir);
+                    f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, rootDir);
                     //f32Reader.volumeInfo(dirInfo);
                     System.out.println(f32Reader.getVolIDName().toUpperCase());
+                    break;
+                case "freelist":
+                    System.out.println("Going to freelist");
+                    List<Integer> firstThreeFreeClus = f32Reader.getFreeList(fat32Img, directoryObj, f32Reader);
+                    for(int i = 0; i < firstThreeFreeClus.size(); i++) {
+                        System.out.println("Free Cluster#" + i + ": " + firstThreeFreeClus.get(i));
+                    }
                     break;
                 case "quit":
                     System.out.println("Quitting");
@@ -627,5 +635,21 @@ public class fat32Reader {
      */
     public String getVolIDName() {
         return volIDName;
+    }
+
+    public List<Integer> getFreeList(String fat32img, DirectoryObj directoryObj, fat32Reader f32Reader) throws IOException {
+        List<Integer> firstThreeFreeClusters = new ArrayList<Integer>();
+        int fat_table = directoryObj.getFatTable(f32Reader);
+        int x = fat_table;
+        int index = 0;
+        while(firstThreeFreeClusters.size() < 3){
+            BigInteger val = BigInteger.valueOf(f32Reader.getBytesData(fat32img, x,4));
+            if(val.equals(268435456L) || val.equals(4026531840L) || val.equals(BigInteger.ZERO)){
+                firstThreeFreeClusters.add(index);
+            }
+            x += 4;
+            index++;
+        }
+        return firstThreeFreeClusters;
     }
 }
