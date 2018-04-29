@@ -235,7 +235,10 @@ public class fat32Reader {
                     file = cmdLineArgs[1];
                     dirEntry = directoryObj.getDirEntryByName(file.toLowerCase());
                     int loc = dirEntry.getOffSetShortName();
-                    directoryObj.getClusters(fat32Img, f32Reader, dirEntry.getNextClusNum());
+                    int n = dirEntry.getNextClusNum();
+                    List<Integer> clus = directoryObj.getClusters(fat32Img, f32Reader, n);
+                    int fatTable = f32Reader.getFatTable();
+                    f32Reader.deleteInFat(f32Reader, fatTable, clus);
                     f32Reader.out.put(loc, (byte) 0xE5);
                     int clusNum = dirEntry.getNextClusNum();
                     directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
@@ -662,5 +665,15 @@ public class fat32Reader {
             index++;
         }
         return firstThreeFreeClusters;
+    }
+
+    public void deleteInFat(fat32Reader f32, int fatTable, List<Integer> Clus){
+        for(int c : Clus){
+            for(int i = 0; i < 4; i++) {
+                int p = fatTable + (c * 4) + i;
+                System.out.println("OffSet Clear: " + p);
+                f32.out.put(p, (byte) 0x00);
+            }
+        }
     }
 }
