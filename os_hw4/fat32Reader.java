@@ -33,6 +33,7 @@ public class fat32Reader {
     private int rootDir;
     private int currentDir;
     private int fatTable;
+    private int fatTableTwo;
     private String fat32img;
     private int BytesPerClus;
     private String volIDName;
@@ -73,6 +74,7 @@ public class fat32Reader {
         ThisFATSecNum = BPB_ResvdSecCnt + (FATOffset / BPB_BytsPerSec);
         ThisFATEntOffset = (FATOffset % BPB_BytsPerSec);
         fatTable = ThisFATSecNum * BytesPerClus;
+        fatTableTwo = (getFATsz() + ThisFATSecNum) * BytesPerClus;
     }
 
     /**
@@ -122,7 +124,7 @@ public class fat32Reader {
                 case "stat":
                     System.out.println("Going to stat");
                     //run stat helper method
-                    dirInfo = f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, currentDir);
+                    f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, currentDir);
                     if (cmdLineArgs.length > 1) {
                         f32Reader.doStat(cmdLineArgs[1], directoryObj);
                     } else {
@@ -132,7 +134,6 @@ public class fat32Reader {
                 case "size":
                     System.out.println("Going to size");
                     //run size helper method
-                    //directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
                     if (cmdLineArgs.length > 1 && directoryObj.getDirEntryByName(cmdLineArgs[1]) != null) {
                         System.out.println("Size is " + directoryObj.getDirEntryByName(cmdLineArgs[1]).getFileSize());
                     } else {
@@ -141,15 +142,10 @@ public class fat32Reader {
                     break;
                 case "cd":
                     System.out.println("Going to cd");
-                    //run cd helper method
-                    //FIXME: find the location of dir and set that to currentDir
-                    //TODO: check if it is a directory to cd into by checking that attribute 16
                     currentWorkingDirName = cmdLineArgs[1].toUpperCase();
                     DirEntry dirEntry = directoryObj.getDirEntryByName(cmdLineArgs[1].toLowerCase());
                     if (dirEntry == null) {
                         System.out.println("Error: File/Directory does not exist");
-                        //workingDir = previousDir;
-                        //workingDir--;
                     } else if (dirEntry.getDirAttr() == 16) {
                         if (currentWorkingDirName.equals("..")) {
                             if(!currentWorkingDirName.equals("")){
@@ -157,7 +153,6 @@ public class fat32Reader {
                             }
 
                         } else if (currentWorkingDirName.equals(".")) {
-                            //do nothing
                         } else {
                             boolean isInArr = f32Reader.strContainsArr(workingDirLst,currentWorkingDirName);
                             if(!isInArr) {
@@ -179,7 +174,6 @@ public class fat32Reader {
                         }
                     } else {
                         System.out.println("Error: File is not a directory");
-                        //workingDir = previousDir;
                     }
                     break;
                 case "ls":
@@ -238,7 +232,9 @@ public class fat32Reader {
                     int n = dirEntry.getNextClusNum();
                     List<Integer> clus = directoryObj.getClusters(fat32Img, f32Reader, n);
                     int fatTable = f32Reader.getFatTable();
+                    int fatTableTwo = f32Reader.getFatTableTwo();
                     f32Reader.deleteInFat(f32Reader, fatTable, clus);
+                    f32Reader.deleteInFat(f32Reader, fatTableTwo, clus);
                     f32Reader.out.put(loc, (byte) 0xE5);
                     int clusNum = dirEntry.getNextClusNum();
                     directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
@@ -629,6 +625,14 @@ public class fat32Reader {
     }
 
     /**
+     * Gets fatTableTwo
+     * @return fatTableTwo
+     */
+    public int getFatTableTwo() {
+        return fatTableTwo;
+    }
+
+    /**
      * Checks if it already exists in the array
      * @param list
      * @param name
@@ -667,11 +671,16 @@ public class fat32Reader {
         return firstThreeFreeClusters;
     }
 
+    /**
+     * Deletes all fat entries of given file
+     * @param f32
+     * @param fatTable
+     * @param Clus
+     */
     public void deleteInFat(fat32Reader f32, int fatTable, List<Integer> Clus){
         for(int c : Clus){
             for(int i = 0; i < 4; i++) {
                 int p = fatTable + (c * 4) + i;
-                System.out.println("OffSet Clear: " + p);
                 f32.out.put(p, (byte) 0x00);
             }
         }
