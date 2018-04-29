@@ -52,6 +52,7 @@ public class DirectoryObj {
             int dirNameNumStart = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
             getDot = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
             int getDotDot = f32.getBytesData(fat32,currentDir + varNum + offNum,2);
+            int offSetShortName = currentDir + varNum + offNum;
             String DIR_Name = f32.getBytesChar(fat32, currentDir + varNum + offNum, 8);
             offNum += 8;
             String DIR_Name_ext = f32.getBytesChar(fat32, currentDir + varNum + offNum, 3);
@@ -87,7 +88,7 @@ public class DirectoryObj {
                     int nextClusNum = getNextClusNum(DIR_FstClusHI,DIR_FstClusLO);
                     //N = nextClusNum;
                     int fileLoc = getFileLocation(f32,nextClusNum);
-                    DirEntry dEntry = new DirEntry(DirNameFull, DIR_FstClusHI, DIR_FstClusLO, DIR_Attr, dirEntryStr, DIR_fileSize, nextClusNum, fileLoc);
+                    DirEntry dEntry = new DirEntry(DirNameFull, DIR_FstClusHI, DIR_FstClusLO, DIR_Attr, dirEntryStr, DIR_fileSize, nextClusNum, fileLoc, offSetShortName);
                     dEntryLst.add(dEntry);
 
                 }

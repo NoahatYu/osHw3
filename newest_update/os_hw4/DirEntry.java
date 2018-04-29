@@ -13,6 +13,7 @@ public class DirEntry {
     private int location;
     private List<Integer> clusters;
     private String nextClusNumHex;
+    private int offSetShortName;
 
     /**
      * Constructor
@@ -23,7 +24,7 @@ public class DirEntry {
      * @param dirAttrName directory attribute name
      * @param fileSize file size
      */
-    public DirEntry(String dirName, int hiClus, int loClus,int dirAttr, String dirAttrName, int fileSize,int nextClusNum, int location){
+    public DirEntry(String dirName, int hiClus, int loClus,int dirAttr, String dirAttrName, int fileSize,int nextClusNum, int location, int offSetShortName){
         this.dirName = dirName;
         this.hiClus = hiClus;
         this.loClus = loClus;
@@ -34,6 +35,7 @@ public class DirEntry {
         clusters = new ArrayList<Integer>();
         this.nextClusNum = nextClusNum;
         nextClusNumHex = "0x" + Integer.toHexString(this.nextClusNum);
+        this.offSetShortName = offSetShortName;
     }
 
     /**
@@ -121,5 +123,13 @@ public class DirEntry {
      */
     public int getLocation() {
         return location;
+    }
+
+    /**
+     * Gets the short name of the file in a directory
+     * @return getOffSetShortName
+     */
+    public int getOffSetShortName() {
+        return offSetShortName;
     }
 }

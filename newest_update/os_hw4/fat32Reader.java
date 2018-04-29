@@ -164,16 +164,16 @@ public class fat32Reader {
                                 workingDirLst.add(currentWorkingDirName);
                             }
                         }
-                        int clusNum = dirEntry.getNextClusNum();
+                        f32Reader.setN(dirEntry.getNextClusNum());
                         // If we cd .. back into root directory, we set n = 2, because the root directory is 2.
-                        if (dirEntry.getDirName().equals("..") && clusNum == 0) {
-                            clusNum = 2;
+                        if (dirEntry.getDirName().equals("..") && f32Reader.getN() == 0) {
+                            f32Reader.setN(2);
                             currentDir = rootDir;
                         } else {
                             currentDir = dirEntry.getLocation();
                         }
                         //update directory object
-                        directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, clusNum);
+                        directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
                         if(!currentWorkingDirName.equals(".")){
                             workingDir++;
                         }
@@ -229,6 +229,17 @@ public class fat32Reader {
                     for(int i = 0; i < firstThreeFreeClus.size(); i++) {
                         System.out.println("Free Cluster#" + i + ": " + firstThreeFreeClus.get(i));
                     }
+                    break;
+                case "delete":
+                    System.out.println("Going to delete");
+                    file = cmdLineArgs[1];
+                    dirEntry = directoryObj.getDirEntryByName(file.toLowerCase());
+                    int loc = dirEntry.getOffSetShortName();
+                    directoryObj.getClusters(fat32Img, f32Reader, dirEntry.getNextClusNum());
+                    f32Reader.out.put(loc, (byte) 0xE5);
+                    int clusNum = dirEntry.getNextClusNum();
+                    directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
+                    System.out.println("done");
                     break;
                 case "quit":
                     System.out.println("Quitting");
