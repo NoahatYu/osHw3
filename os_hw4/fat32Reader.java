@@ -219,10 +219,11 @@ public class fat32Reader {
                     break;
                 case "freelist":
                     System.out.println("Going to freelist");
-                    List<Integer> firstThreeFreeClus = f32Reader.getFreeList(fat32Img, directoryObj, f32Reader);
-                    for(int i = 0; i < firstThreeFreeClus.size(); i++) {
-                        System.out.println("Free Cluster#" + i + ": " + firstThreeFreeClus.get(i));
+                    List<Integer> FreeClus = f32Reader.getFreeList(fat32Img, directoryObj, f32Reader);
+                    for(int i = 0; i < FreeClus.size() && i < 3; i++) {
+                        System.out.println("Free Cluster#" + i + ": " + FreeClus.get(i));
                     }
+                    System.out.println("Total number of Free Clusters: " + FreeClus.size());
                     break;
                 case "delete":
                     System.out.println("Going to delete");
@@ -660,7 +661,7 @@ public class fat32Reader {
         int fat_table = directoryObj.getFatTable(f32Reader);
         int x = fat_table;
         int index = 0;
-        while(firstThreeFreeClusters.size() < 3){
+        while(x < fatTableTwo){
             BigInteger val = BigInteger.valueOf(f32Reader.getBytesData(fat32img, x,4));
             if(val.equals(268435456L) || val.equals(4026531840L) || val.equals(BigInteger.ZERO)){
                 firstThreeFreeClusters.add(index);
