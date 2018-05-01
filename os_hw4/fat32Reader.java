@@ -241,6 +241,13 @@ public class fat32Reader {
                     directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
                     System.out.println("done");
                     break;
+                case "newfile":
+                    System.out.println("Going to newfile");
+                    file = cmdLineArgs[1];
+                    String s = cmdLineArgs[2];
+                    int size = Integer.parseInt(s);
+                    FreeClus = f32Reader.getFreeList(fat32Img, directoryObj, f32Reader);
+                    f32Reader.writeToFat(f32Reader, f32Reader.getFatTable(), FreeClus,size);
                 case "quit":
                     System.out.println("Quitting");
                     System.exit(0);
@@ -679,11 +686,48 @@ public class fat32Reader {
      * @param Clus
      */
     public void deleteInFat(fat32Reader f32, int fatTable, List<Integer> Clus){
+        int p = 0;
         for(int c : Clus){
             for(int i = 0; i < 4; i++) {
-                int p = fatTable + (c * 4) + i;
+                p = fatTable + (c * 4) + i;
                 f32.out.put(p, (byte) 0x00);
             }
         }
     }
+
+
+    public void writeToFat(fat32Reader f32, int fatTable, List<Integer> Clus, int size){
+        int bytes_per_clus = f32.getBytesPerClus();
+        int total_clus = (int) Math.floor(size/bytes_per_clus) + 1;
+        int current_clus = 0;
+        int pos = 0;
+        //int s = 0;
+        //Integer eoc = 268435448;
+        //String EOC = "0" + Integer.toHexString(eoc);
+        //byte[] b = new BigInteger(EOC,16).toByteArray();
+        byte[] b = new byte[4];
+        b[0] = (byte) 0x0F;
+        b[1] = (byte) 0xFF;
+        b[2] = (byte) 0xFF;
+        b[3] = (byte) 0xF8;
+        int p = 16755;
+        f32.out.put(p, (byte) 0x00);
+        while(current_clus < total_clus){
+            pos = fatTable + (Clus.get(current_clus) * 4);
+            for(int i = 0; i < b.length; i++) {
+                f32.out.put(pos + i, b[i]);
+            }
+            current_clus++;
+        }
+    }
+
+    /*
+    public void writeToDirectory(fat32Reader f32, int currentDir, String name, String ext){
+
+    }
+    */
+
+    public void writeToFileLocation(fat32Reader f32, int fatTable, List<Integer> Clus){
+    }
+
 }

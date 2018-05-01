@@ -102,6 +102,70 @@ public class DirectoryObj {
         }
     }
 
+    /*
+    public void writeToDirectory(fat32Reader f32, String fat32, int currentDir, int size, String name, String ext) throws IOException {
+        int offNum = 0;
+        int varNum = 0;
+        boolean done = false;
+        int getDot = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
+        if(theN != 2 && getDot != 46){
+            varNum += 32;
+        }
+        while(!done) {
+            int dirNameNumStart = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
+            getDot = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
+            int getDotDot = f32.getBytesData(fat32,currentDir + varNum + offNum,2);
+            int offSetShortName = currentDir + varNum + offNum;
+            String DIR_Name = f32.getBytesChar(fat32, currentDir + varNum + offNum, 8);
+            offNum += 8;
+            String DIR_Name_ext = f32.getBytesChar(fat32, currentDir + varNum + offNum, 3);
+            offNum += 3;
+            int DIR_Attr = f32.getBytesData(fat32, currentDir + varNum + offNum, 1);
+            offNum += 9;
+            int DIR_FstClusHI = f32.getBytesData(fat32, currentDir + varNum + offNum, 2);
+            offNum += 6;
+            int DIR_FstClusLO = f32.getBytesData(fat32, currentDir + varNum + offNum, 2);
+            offNum += 2;
+            int DIR_fileSize = f32.getBytesData(fat32,currentDir + varNum + offNum,4);
+
+            //If there are 32 bytes of 0s then that is the end of the directory entries
+            if (DIR_Name.equals("") || varNum >= f32.getBytesPerClus()) {
+                int endOfNames = f32.getBytesData(fat32, currentDir + varNum + offNum, 32);
+                if (endOfNames == 0 || varNum >= f32.getBytesPerClus()) {
+                    done = true;
+                }
+            } else {
+                String DirNameFull = "";
+                //If it is 8 then it is a volume ID, so don't add it to lists
+                if (DIR_Attr != 0) {
+                    //if it is a directory then it has no extension
+                    if (DIR_Attr == 16 || DIR_Attr == 8) {
+                        DirNameFull = DIR_Name;
+                    } else {
+                        DirNameFull = DIR_Name + "." + DIR_Name_ext;
+                    }
+                    //add info to lists
+                    //parse the short name directory before it is added to the list.
+                    DirNameFull = DirNameFull.toLowerCase().replaceAll(" ", "");
+                    String dirEntryStr = dirAttrMap.get(DIR_Attr);
+                    int nextClusNum = getNextClusNum(DIR_FstClusHI,DIR_FstClusLO);
+                    //N = nextClusNum;
+                    int fileLoc = getFileLocation(f32,nextClusNum);
+                    DirEntry dEntry = new DirEntry(DirNameFull, DIR_FstClusHI, DIR_FstClusLO, DIR_Attr, dirEntryStr, DIR_fileSize, nextClusNum, fileLoc, offSetShortName);
+                    dEntryLst.add(dEntry);
+
+                }
+                offNum = 0;//reset offset number
+                if(getDot == 46 && getDotDot != 11822){
+                    varNum += 32;
+                }else {
+                    varNum += 64;//update varNum to move onto the next short name dir
+                }
+            }
+        }
+    }
+    */
+
     /**
      * Gets all directory info across clusters
      * @param fat32
