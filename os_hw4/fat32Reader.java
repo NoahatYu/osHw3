@@ -710,8 +710,6 @@ public class fat32Reader {
         b[1] = (byte) 0xFF;
         b[2] = (byte) 0xFF;
         b[3] = (byte) 0xF8;
-        int p = 16755;
-        f32.out.put(p, (byte) 0x00);
         while(current_clus < total_clus){
             pos = fatTable + (Clus.get(current_clus) * 4);
             for(int i = 0; i < b.length; i++) {
