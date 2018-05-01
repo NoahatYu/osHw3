@@ -710,12 +710,24 @@ public class fat32Reader {
         b[1] = (byte) 0xFF;
         b[2] = (byte) 0xFF;
         b[3] = (byte) 0xF8;
-        while(current_clus < total_clus){
+        while(current_clus < total_clus - 1){
             pos = fatTable + (Clus.get(current_clus) * 4);
-            for(int i = 0; i < b.length; i++) {
-                f32.out.put(pos + i, b[i]);
+            String hex = Integer.toHexString(Clus.get(current_clus));
+            byte[] c = new byte[4];
+            c[0] = (byte) Integer.parseUnsignedInt(hex.substring(0,2));
+            c[1] = (byte) Integer.parseUnsignedInt(hex.substring(2,4));
+            c[2] = (byte) Integer.parseUnsignedInt(hex.substring(4,6));
+            c[3] = (byte) Integer.parseUnsignedInt(hex.substring(6,8));
+            for (int i = 0; i < b.length; i++) {
+                f32.out.put(pos + i, c[i]);
             }
             current_clus++;
+        }
+        if(current_clus == total_clus - 1){
+            pos = fatTable + (Clus.get(current_clus) * 4);
+            for (int i = 0; i < b.length; i++) {
+                f32.out.put(pos + i, b[i]);
+            }
         }
     }
 
