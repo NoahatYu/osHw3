@@ -3,7 +3,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -161,6 +163,12 @@ public class DirectoryObj {
                 f32.getOut().put(currentDir + varNum + offNum + 29, asize[1]);
                 f32.getOut().put(currentDir + varNum + offNum + 30, asize[2]);
                 f32.getOut().put(currentDir + varNum + offNum + 31, asize[3]);
+                String time = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
+                int x = (int) Math.floor((Integer.parseInt(time)/10));
+                byte h = (byte) (x % 256);
+                byte g = (byte) Math.floor(x / 256);
+                f32.getOut().put(currentDir + varNum + offNum + 22, h);
+                f32.getOut().put(currentDir + varNum + offNum + 23, g);
                 done = true;
             }
             else {

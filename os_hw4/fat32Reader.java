@@ -280,7 +280,6 @@ public class fat32Reader {
         System.out.println("BPB_RsvdSecCnt: " + BPB_ResvdSecCnt + ", " + hexer(BPB_ResvdSecCnt));
         System.out.println("BPB_NumFATS: " + BPB_NumFATs + ", " + hexer(BPB_NumFATs));
         System.out.println("BPB_FATSz32: " + FATsz + ", " + hexer(FATsz));
-
     }
 
 
