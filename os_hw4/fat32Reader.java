@@ -5,6 +5,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.*;
 import java.nio.channels.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -249,7 +250,7 @@ public class fat32Reader {
                     s = s.toUpperCase();
                     int size = Integer.parseInt(s);
                     FreeClus = f32Reader.getFreeList(fat32Img, directoryObj, f32Reader);
-                    f32Reader.writeNewFile(f32Reader, fat32Img, directoryObj, f32Reader.getFatTable(), FreeClus, size, currentDir, file);
+                    f32Reader.writeNewFile(f32Reader, fat32Img, directoryObj, f32Reader.getFatTable(), f32Reader.getFatTableTwo(), FreeClus, size, currentDir, file);
                     f32Reader.writeToFat(f32Reader, f32Reader.getFatTable(), FreeClus, size);
                 case "quit":
                     System.out.println("Quitting");
@@ -740,11 +741,33 @@ public class fat32Reader {
         }
     }
 
-    public void writeToFileLocation(fat32Reader f32, int fatTable, List<Integer> Clus){
+    public void writeToFileLocation(fat32Reader f32, DirectoryObj dirObj, List<Integer> Clus, int size){
+        int bytes_per_cluster = f32.getBytesPerClus();
+        int number_of_clusters = (int) Math.floor(size/bytes_per_cluster) + 1;
+        int file_offset = 0;
+        String output = "New File.\r\n";
+        byte[] bop = output.getBytes(StandardCharsets.US_ASCII);
+        for(int i = 0; i < number_of_clusters - 1; i++) {
+            file_offset = dirObj.getFileLocation(f32, Clus.get(i));
+            int j = 0;
+            while(j < bytes_per_cluster){
+                f32.getOut().put(file_offset + j, bop[j % bop.length]);
+                j++;
+            }
+        }
+        file_offset = dirObj.getFileLocation(f32, Clus.get(number_of_clusters - 1));
+        int j = 0;
+        int x = size % bytes_per_cluster;
+        while(j < x){
+            f32.getOut().put(file_offset + j, bop[j % bop.length]);
+            j++;
+        }
     }
 
-    public void writeNewFile(fat32Reader f32, String fat32, DirectoryObj dirObj, int fatTable, List<Integer> Clus, int size, int currentDir, String short_name) throws IOException {
+    public void writeNewFile(fat32Reader f32, String fat32, DirectoryObj dirObj, int fatTable, int fatTableTwo, List<Integer> Clus, int size, int currentDir, String short_name) throws IOException {
+        writeToFileLocation(f32, dirObj, Clus, size);
         writeToFat(f32, fatTable, Clus, size);
+        writeToFat(f32, fatTableTwo, Clus, size);
         if(Clus.size() > 0) {
             dirObj.writeToDirectory(f32, fat32, currentDir, short_name, Clus.get(0), size);
         }
