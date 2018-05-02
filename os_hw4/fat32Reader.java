@@ -246,9 +246,11 @@ public class fat32Reader {
                     System.out.println("Going to newfile");
                     file = cmdLineArgs[1];
                     String s = cmdLineArgs[2];
+                    s = s.toUpperCase();
                     int size = Integer.parseInt(s);
                     FreeClus = f32Reader.getFreeList(fat32Img, directoryObj, f32Reader);
-                    f32Reader.writeToFat(f32Reader, f32Reader.getFatTable(), FreeClus,size);
+                    f32Reader.writeNewFile(f32Reader, fat32Img, directoryObj, f32Reader.getFatTable(), FreeClus, size, currentDir, file);
+                    f32Reader.writeToFat(f32Reader, f32Reader.getFatTable(), FreeClus, size);
                 case "quit":
                     System.out.println("Quitting");
                     System.exit(0);
@@ -738,13 +740,17 @@ public class fat32Reader {
         }
     }
 
-    /*
-    public void writeToDirectory(fat32Reader f32, int currentDir, String name, String ext){
-
-    }
-    */
-
     public void writeToFileLocation(fat32Reader f32, int fatTable, List<Integer> Clus){
+    }
+
+    public void writeNewFile(fat32Reader f32, String fat32, DirectoryObj dirObj, int fatTable, List<Integer> Clus, int size, int currentDir, String short_name) throws IOException {
+        writeToFat(f32, fatTable, Clus, size);
+        if(Clus.size() > 0) {
+            dirObj.writeToDirectory(f32, fat32, currentDir, short_name, Clus.get(0), size);
+        }
+        else{
+            System.out.println("Error: No free space to write");
+        }
     }
 
 }

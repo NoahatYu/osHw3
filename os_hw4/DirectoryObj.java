@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -104,10 +105,31 @@ public class DirectoryObj {
         }
     }
 
-    public void writeToDirectory(fat32Reader f32, String fat32, int currentDir, byte[] name, byte[] ext, int first_free_cluster, int size) throws IOException {
+    public void writeToDirectory(fat32Reader f32, String fat32, int currentDir, String short_name, int first_free_cluster, int size) throws IOException {
         int offNum = 0;
         int varNum = 0;
         boolean done = false;
+        String[] full_dir_name = short_name.split("\\.");
+        short_name = full_dir_name[0];
+        String ext = full_dir_name[1];
+        byte[] name = new byte[8];
+        for(int i = 0; i < 8; i++) {
+            if(i < short_name.length()) {
+                name[i] = (byte) short_name.charAt(i);
+            }
+            else{
+                name[i] = (byte) 0x20;
+            }
+        }
+        byte[] Bext = new byte[3];
+        for(int i = 0; i < 3; i++) {
+            if(i < ext.length()) {
+                Bext[i] = (byte) ext.charAt(i);
+            }
+            else{
+                Bext[i] = (byte) 0x20;
+            }
+        }
         int is_empty = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
         if(theN != 2 && is_empty != 46){
             varNum += 32;
@@ -119,8 +141,8 @@ public class DirectoryObj {
                 for (int i = 0; i < name.length; i++) {
                     f32.getOut().put(currentDir + varNum + offNum + i, name[i]);
                 }
-                for (int j = 0; j < ext.length; j++) {
-                    f32.getOut().put(currentDir + varNum + offNum + 8 + j, ext[j]);
+                for (int j = 0; j < Bext.length; j++) {
+                    f32.getOut().put(currentDir + varNum + offNum + 8 + j, Bext[j]);
                 }
                 // Writing attribute value to file
                 f32.getOut().put(currentDir + varNum + offNum + 11, (byte) 0x20);
@@ -131,23 +153,26 @@ public class DirectoryObj {
                 }
                 int hi = Integer.parseInt(hex.substring(0, 4), 16);
                 int lo = Integer.parseInt(hex.substring(4, 8), 16);
-                ByteBuffer hiB = ByteBuffer.allocate(2);
-                ByteBuffer loB = ByteBuffer.allocate(2);
-                hiB.order(ByteOrder.BIG_ENDIAN);
-                loB.order(ByteOrder.BIG_ENDIAN);
+                ByteBuffer hiB = ByteBuffer.allocate(4);
+                ByteBuffer loB = ByteBuffer.allocate(4);
+                hiB.order(ByteOrder.LITTLE_ENDIAN);
+                loB.order(ByteOrder.LITTLE_ENDIAN);
                 hiB.asIntBuffer().put(hi);
-                hiB.asIntBuffer().put(lo);
-                f32.getOut().put(currentDir + varNum + offNum + 20, (byte) hiB.asIntBuffer().get(0));
-                f32.getOut().put(currentDir + varNum + offNum + 21, (byte) hiB.asIntBuffer().get(1));
-                f32.getOut().put(currentDir + varNum + offNum + 26, (byte) loB.asIntBuffer().get(0));
-                f32.getOut().put(currentDir + varNum + offNum + 27, (byte) loB.asIntBuffer().get(1));
-                ByteBuffer sizeB = ByteBuffer.allocate(4);
-                sizeB.order(ByteOrder.BIG_ENDIAN);
+                loB.asIntBuffer().put(lo);
+                byte[] ahi = hiB.array();
+                byte[] alo = loB.array();
+                f32.getOut().put(currentDir + varNum + offNum + 20, ahi[0]);
+                f32.getOut().put(currentDir + varNum + offNum + 21, ahi[1]);
+                f32.getOut().put(currentDir + varNum + offNum + 26, alo[0]);
+                f32.getOut().put(currentDir + varNum + offNum + 27, alo[1]);
+                ByteBuffer sizeB = ByteBuffer.allocate(8);
+                sizeB.order(ByteOrder.LITTLE_ENDIAN);
                 sizeB.asIntBuffer().put(size);
-                f32.getOut().put(currentDir + varNum + offNum + 28, (byte) sizeB.asIntBuffer().get(0));
-                f32.getOut().put(currentDir + varNum + offNum + 29, (byte) sizeB.asIntBuffer().get(1));
-                f32.getOut().put(currentDir + varNum + offNum + 30, (byte) sizeB.asIntBuffer().get(2));
-                f32.getOut().put(currentDir + varNum + offNum + 31, (byte) sizeB.asIntBuffer().get(3));
+                byte[] asize = sizeB.array();
+                f32.getOut().put(currentDir + varNum + offNum + 28, asize[0]);
+                f32.getOut().put(currentDir + varNum + offNum + 29, asize[1]);
+                f32.getOut().put(currentDir + varNum + offNum + 30, asize[2]);
+                f32.getOut().put(currentDir + varNum + offNum + 31, asize[3]);
                 done = true;
             }
             else {
