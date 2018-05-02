@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -102,69 +104,63 @@ public class DirectoryObj {
         }
     }
 
-    /*
-    public void writeToDirectory(fat32Reader f32, String fat32, int currentDir, int size, String name, String ext) throws IOException {
+    public void writeToDirectory(fat32Reader f32, String fat32, int currentDir, byte[] name, byte[] ext, int first_free_cluster, int size) throws IOException {
         int offNum = 0;
         int varNum = 0;
         boolean done = false;
-        int getDot = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
-        if(theN != 2 && getDot != 46){
+        int is_empty = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
+        if(theN != 2 && is_empty != 46){
             varNum += 32;
         }
         while(!done) {
-            int dirNameNumStart = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
-            getDot = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
-            int getDotDot = f32.getBytesData(fat32,currentDir + varNum + offNum,2);
-            int offSetShortName = currentDir + varNum + offNum;
-            String DIR_Name = f32.getBytesChar(fat32, currentDir + varNum + offNum, 8);
-            offNum += 8;
-            String DIR_Name_ext = f32.getBytesChar(fat32, currentDir + varNum + offNum, 3);
-            offNum += 3;
-            int DIR_Attr = f32.getBytesData(fat32, currentDir + varNum + offNum, 1);
-            offNum += 9;
-            int DIR_FstClusHI = f32.getBytesData(fat32, currentDir + varNum + offNum, 2);
-            offNum += 6;
-            int DIR_FstClusLO = f32.getBytesData(fat32, currentDir + varNum + offNum, 2);
-            offNum += 2;
-            int DIR_fileSize = f32.getBytesData(fat32,currentDir + varNum + offNum,4);
-
-            //If there are 32 bytes of 0s then that is the end of the directory entries
-            if (DIR_Name.equals("") || varNum >= f32.getBytesPerClus()) {
-                int endOfNames = f32.getBytesData(fat32, currentDir + varNum + offNum, 32);
-                if (endOfNames == 0 || varNum >= f32.getBytesPerClus()) {
-                    done = true;
+            is_empty = f32.getBytesData(fat32, currentDir + varNum + offNum, 1);
+            if (is_empty == 229 || is_empty == 0) {
+                //Write
+                for (int i = 0; i < name.length; i++) {
+                    f32.getOut().put(currentDir + varNum + offNum + i, name[i]);
                 }
-            } else {
-                String DirNameFull = "";
-                //If it is 8 then it is a volume ID, so don't add it to lists
-                if (DIR_Attr != 0) {
-                    //if it is a directory then it has no extension
-                    if (DIR_Attr == 16 || DIR_Attr == 8) {
-                        DirNameFull = DIR_Name;
-                    } else {
-                        DirNameFull = DIR_Name + "." + DIR_Name_ext;
-                    }
-                    //add info to lists
-                    //parse the short name directory before it is added to the list.
-                    DirNameFull = DirNameFull.toLowerCase().replaceAll(" ", "");
-                    String dirEntryStr = dirAttrMap.get(DIR_Attr);
-                    int nextClusNum = getNextClusNum(DIR_FstClusHI,DIR_FstClusLO);
-                    //N = nextClusNum;
-                    int fileLoc = getFileLocation(f32,nextClusNum);
-                    DirEntry dEntry = new DirEntry(DirNameFull, DIR_FstClusHI, DIR_FstClusLO, DIR_Attr, dirEntryStr, DIR_fileSize, nextClusNum, fileLoc, offSetShortName);
-                    dEntryLst.add(dEntry);
-
+                for (int j = 0; j < ext.length; j++) {
+                    f32.getOut().put(currentDir + varNum + offNum + 8 + j, ext[j]);
                 }
+                // Writing attribute value to file
+                f32.getOut().put(currentDir + varNum + offNum + 11, (byte) 0x20);
+                String hex = Integer.toHexString(first_free_cluster);
+                int leftover = 8 - hex.length();
+                for (int i = 0; i < leftover; i++) {
+                    hex = "0" + hex;
+                }
+                int hi = Integer.parseInt(hex.substring(0, 4), 16);
+                int lo = Integer.parseInt(hex.substring(4, 8), 16);
+                ByteBuffer hiB = ByteBuffer.allocate(2);
+                ByteBuffer loB = ByteBuffer.allocate(2);
+                hiB.order(ByteOrder.BIG_ENDIAN);
+                loB.order(ByteOrder.BIG_ENDIAN);
+                hiB.asIntBuffer().put(hi);
+                hiB.asIntBuffer().put(lo);
+                f32.getOut().put(currentDir + varNum + offNum + 20, (byte) hiB.asIntBuffer().get(0));
+                f32.getOut().put(currentDir + varNum + offNum + 21, (byte) hiB.asIntBuffer().get(1));
+                f32.getOut().put(currentDir + varNum + offNum + 26, (byte) loB.asIntBuffer().get(0));
+                f32.getOut().put(currentDir + varNum + offNum + 27, (byte) loB.asIntBuffer().get(1));
+                ByteBuffer sizeB = ByteBuffer.allocate(4);
+                sizeB.order(ByteOrder.BIG_ENDIAN);
+                sizeB.asIntBuffer().put(size);
+                f32.getOut().put(currentDir + varNum + offNum + 28, (byte) sizeB.asIntBuffer().get(0));
+                f32.getOut().put(currentDir + varNum + offNum + 29, (byte) sizeB.asIntBuffer().get(1));
+                f32.getOut().put(currentDir + varNum + offNum + 30, (byte) sizeB.asIntBuffer().get(2));
+                f32.getOut().put(currentDir + varNum + offNum + 31, (byte) sizeB.asIntBuffer().get(3));
+                done = true;
+            }
+            else {
+                int getDotDot = f32.getBytesData(fat32, currentDir + varNum + offNum, 2);
                 offNum = 0;//reset offset number
-                if(getDot == 46 && getDotDot != 11822){
+                if (is_empty == 46 && getDotDot != 11822) {
                     varNum += 32;
-                }else {
+                } else {
                     varNum += 64;//update varNum to move onto the next short name dir
                 }
             }
         }
     }
-    */
 
     /**
      * Gets all directory info across clusters

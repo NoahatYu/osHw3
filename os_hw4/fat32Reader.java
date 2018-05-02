@@ -37,6 +37,7 @@ public class fat32Reader {
     private String fat32img;
     private int BytesPerClus;
     private String volIDName;
+
     //private static DirectoryObj directoryObj;
     private MappedByteBuffer out;
 
@@ -655,12 +656,17 @@ public class fat32Reader {
         }
         return false;
     }
-/**
+
+    /**
      * Gets the volumeID
      * @return volume id
      */
     public String getVolIDName() {
         return volIDName;
+    }
+
+    public MappedByteBuffer getOut() {
+        return out;
     }
 
     public List<Integer> getFreeList(String fat32img, DirectoryObj directoryObj, fat32Reader f32Reader) throws IOException {
@@ -701,32 +707,33 @@ public class fat32Reader {
         int total_clus = (int) Math.floor(size/bytes_per_clus) + 1;
         int current_clus = 0;
         int pos = 0;
-        //int s = 0;
-        //Integer eoc = 268435448;
-        //String EOC = "0" + Integer.toHexString(eoc);
-        //byte[] b = new BigInteger(EOC,16).toByteArray();
         byte[] b = new byte[4];
-        b[0] = (byte) 0x0F;
-        b[1] = (byte) 0xFF;
-        b[2] = (byte) 0xFF;
-        b[3] = (byte) 0xF8;
+        String hex = "";
         while(current_clus < total_clus - 1){
             pos = fatTable + (Clus.get(current_clus) * 4);
-            String hex = Integer.toHexString(Clus.get(current_clus));
-            byte[] c = new byte[4];
-            c[0] = (byte) Integer.parseUnsignedInt(hex.substring(0,2));
-            c[1] = (byte) Integer.parseUnsignedInt(hex.substring(2,4));
-            c[2] = (byte) Integer.parseUnsignedInt(hex.substring(4,6));
-            c[3] = (byte) Integer.parseUnsignedInt(hex.substring(6,8));
+            hex = Integer.toHexString(Clus.get(current_clus + 1));
+            int leftover = 8 - hex.length();
+            for(int i = 0; i < leftover; i++){
+                hex = "0" + hex;
+            }
+            b[0] = (byte) Integer.parseUnsignedInt(hex.substring(6,8), 16);
+            b[1] = (byte) Integer.parseUnsignedInt(hex.substring(4,6), 16);
+            b[2] = (byte) Integer.parseUnsignedInt(hex.substring(2,4), 16);
+            b[3] = (byte) Integer.parseUnsignedInt(hex.substring(0,2), 16);
             for (int i = 0; i < b.length; i++) {
-                f32.out.put(pos + i, c[i]);
+                f32.out.put(pos + i, b[i]);
             }
             current_clus++;
         }
+        byte[] eoc = new byte[4];
+        eoc[0] = (byte) 0x0F;
+        eoc[1] = (byte) 0xFF;
+        eoc[2] = (byte) 0xFF;
+        eoc[3] = (byte) 0xF8;
         if(current_clus == total_clus - 1){
             pos = fatTable + (Clus.get(current_clus) * 4);
-            for (int i = 0; i < b.length; i++) {
-                f32.out.put(pos + i, b[i]);
+            for (int i = 0; i < eoc.length; i++) {
+                f32.out.put(pos + i, eoc[i]);
             }
         }
     }
