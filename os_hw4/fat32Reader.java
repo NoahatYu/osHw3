@@ -247,11 +247,13 @@ public class fat32Reader {
                     System.out.println("Going to newfile");
                     file = cmdLineArgs[1];
                     String s = cmdLineArgs[2];
-                    s = s.toUpperCase();
+                    file = file.toUpperCase();
                     int size = Integer.parseInt(s);
                     FreeClus = f32Reader.getFreeList(fat32Img, directoryObj, f32Reader);
                     f32Reader.writeNewFile(f32Reader, fat32Img, directoryObj, f32Reader.getFatTable(), f32Reader.getFatTableTwo(), FreeClus, size, currentDir, file);
                     f32Reader.writeToFat(f32Reader, f32Reader.getFatTable(), FreeClus, size);
+                    directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
+                    break;
                 case "quit":
                     System.out.println("Quitting");
                     System.exit(0);

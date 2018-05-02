@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -112,24 +113,11 @@ public class DirectoryObj {
         String[] full_dir_name = short_name.split("\\.");
         short_name = full_dir_name[0];
         String ext = full_dir_name[1];
-        byte[] name = new byte[8];
-        for(int i = 0; i < 8; i++) {
-            if(i < short_name.length()) {
-                name[i] = (byte) short_name.charAt(i);
-            }
-            else{
-                name[i] = (byte) 0x20;
-            }
+        for(int i = short_name.length(); i < 8; i++) {
+            short_name += " ";
         }
-        byte[] Bext = new byte[3];
-        for(int i = 0; i < 3; i++) {
-            if(i < ext.length()) {
-                Bext[i] = (byte) ext.charAt(i);
-            }
-            else{
-                Bext[i] = (byte) 0x20;
-            }
-        }
+        byte[] name = short_name.getBytes(StandardCharsets.US_ASCII);
+        byte[] Bext = ext.getBytes(StandardCharsets.US_ASCII);
         int is_empty = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
         if(theN != 2 && is_empty != 46){
             varNum += 32;
