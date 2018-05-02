@@ -1,4 +1,4 @@
-﻿#osHw4 Fat32 Utility Reader
+#osHw4 Fat32 Utility Reader
 Operating Systems Homework3 Final Submission
 by Noah Potash and Shalom Azar
 
@@ -20,6 +20,7 @@ Challenges encountered along the way:
 	• Figuring out where the root directory, the current directory, and the FAT were.
 	• Dealing with signed and unsigned ints and converting to little endian in java.
 	• Reading across multiple clusters.
+	• Writing to a file and the fat table.
 
 Sources used:
 	
@@ -27,5 +28,8 @@ Sources used:
 	• Fat32 spec pdf
 	• Used a hexeditor to look at the fat32 image
 	• http://slideplayer.com/slide/3592883/
+
+Notes:
+	• The secret code is 27 62 40 6E 40 6E 40 53 21 27 which is 		  'b@n@n@S!'
 
 
