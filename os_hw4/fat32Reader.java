@@ -217,7 +217,7 @@ public class fat32Reader {
                     //directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
                     f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, rootDir);
                     //f32Reader.volumeInfo(dirInfo);
-                    System.out.println(f32Reader.getVolIDName().toUpperCase());
+                    System.out.println("VolumeID: " + f32Reader.getVolIDName().toUpperCase());
                     break;
                 case "freelist":
                     System.out.println("Going to freelist");
@@ -231,28 +231,38 @@ public class fat32Reader {
                     System.out.println("Going to delete");
                     file = cmdLineArgs[1];
                     dirEntry = directoryObj.getDirEntryByName(file.toLowerCase());
-                    int loc = dirEntry.getOffSetShortName();
-                    int n = dirEntry.getNextClusNum();
-                    List<Integer> clus = directoryObj.getClusters(fat32Img, f32Reader, n);
-                    int fatTable = f32Reader.getFatTable();
-                    int fatTableTwo = f32Reader.getFatTableTwo();
-                    f32Reader.deleteInFat(f32Reader, fatTable, clus);
-                    f32Reader.deleteInFat(f32Reader, fatTableTwo, clus);
-                    f32Reader.out.put(loc, (byte) 0xE5);
-                    int clusNum = dirEntry.getNextClusNum();
-                    directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
-                    System.out.println("done");
+		            if (dirEntry == null) {
+                        System.out.println("Error: File/Directory does not exist");
+                    }else if(dirEntry.getDirAttr() == 16){
+		                System.out.println("Error: Cannot delete a directory");
+		            }else{
+    		            int loc = dirEntry.getOffSetShortName();
+    		            int n = dirEntry.getNextClusNum();
+    		            List<Integer> clus = directoryObj.getClusters(fat32Img, f32Reader, n);
+    		            int fatTable = f32Reader.getFatTable();
+    		            int fatTableTwo = f32Reader.getFatTableTwo();
+    		            f32Reader.deleteInFat(f32Reader, fatTable, clus);
+    		            f32Reader.deleteInFat(f32Reader, fatTableTwo, clus);
+    		            f32Reader.out.put(loc, (byte) 0xE5);
+    		            int clusNum = dirEntry.getNextClusNum();
+    		            directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
+    		            System.out.println(file + " has been deleted");
+	   	            }
                     break;
                 case "newfile":
                     System.out.println("Going to newfile");
                     file = cmdLineArgs[1];
                     String s = cmdLineArgs[2];
                     file = file.toUpperCase();
-                    int size = Integer.parseInt(s);
-                    FreeClus = f32Reader.getFreeList(fat32Img, directoryObj, f32Reader);
-                    f32Reader.writeNewFile(f32Reader, fat32Img, directoryObj, f32Reader.getFatTable(), f32Reader.getFatTableTwo(), FreeClus, size, currentDir, file);
-                    f32Reader.writeToFat(f32Reader, f32Reader.getFatTable(), FreeClus, size);
-                    directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
+                    if(cmdLineArgs.length < 3){
+                        System.out.println("Error: Not enough arguements");
+                    }else{
+                        int size = Integer.parseInt(s);
+                        FreeClus = f32Reader.getFreeList(fat32Img, directoryObj, f32Reader);
+                        f32Reader.writeNewFile(f32Reader, fat32Img, directoryObj, f32Reader.getFatTable(), f32Reader.getFatTableTwo(), FreeClus, size, currentDir, file);
+                        f32Reader.writeToFat(f32Reader, f32Reader.getFatTable(), FreeClus, size);
+                        directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
+                    }
                     break;
                 case "quit":
                     System.out.println("Quitting");
