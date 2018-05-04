@@ -164,6 +164,7 @@ public class DirectoryObj {
                 f32.getOut().put(currentDir + varNum + offNum + 30, asize[2]);
                 f32.getOut().put(currentDir + varNum + offNum + 31, asize[3]);
                 String time = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
+
                 int x = (int) Math.floor((Integer.parseInt(time)/10));
                 byte h = (byte) (x % 256);
                 byte g = (byte) Math.floor(x / 256);
@@ -231,8 +232,8 @@ public class DirectoryObj {
                 //update currentClus
                 if(i != e - 1) {
                     loc = getFileLocation(f32, clusters.get(i));
-                    read += f32.getBytesChar(fat32, loc + o, x);
-                    o = 0;
+                    String read1 = f32.getBytesChar(fat32, loc + o, x);
+                    read = read + read1;
                 }
                 else {
                     loc = getFileLocation(f32, clusters.get(i));
@@ -352,3 +353,4 @@ public class DirectoryObj {
     }
 
 }
+
