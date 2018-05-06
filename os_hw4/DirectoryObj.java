@@ -180,7 +180,7 @@ public class DirectoryObj {
                 int hour = Integer.parseInt(time.substring(0,2));
                 int minute = Integer.parseInt(time.substring(2,4));
                 int seconds = Integer.parseInt(time.substring(4,6));
-                int x = (hour * 2048) + (minute * 32) + (seconds * 2);
+                int x = (hour * 2048) + (minute * 32) + (int) Math.floor(seconds / 2);
                 byte h = (byte) (x % 256);
                 byte g = (byte) Math.floor(x / 256);
                 f32.getOut().put(currentDir + varNum + offNum + 22, h);
@@ -192,17 +192,15 @@ public class DirectoryObj {
                 f32.getOut().put(currentDir + varNum + offNum + 17, (byte) 0);
                 f32.getOut().put(currentDir + varNum + offNum + 18, (byte) 0);
                 f32.getOut().put(currentDir + varNum + offNum + 19, (byte) 0);
-                /*
-                String date = new SimpleDateFormat("dd/mm/yyyy").format(Calendar.getInstance().getTime());
-                int day = Integer.parseInt(time.substring(0,2));
-                int month = Integer.parseInt(time.substring(2,4));
-                int year = Integer.parseInt(time.substring(4,6));
-                int y = (hour * 2048) + (minute * 32) + (seconds * 2);
+                String date = java.time.LocalDateTime.now().toString();
+                int year = Integer.parseInt(date.substring(0,4));
+                int month = Integer.parseInt(date.substring(5,7));
+                int day = Integer.parseInt(date.substring(8,10));
+                int y = ((year - 1980 ) * 512) + (month * 32) + day;
                 byte i = (byte) (y % 256);
                 byte u = (byte) Math.floor(y / 256);
                 f32.getOut().put(currentDir + varNum + offNum + 24, i);
                 f32.getOut().put(currentDir + varNum + offNum + 25, u);
-                */
                 done = true;
             }
             else {
