@@ -56,7 +56,7 @@ public class fat32Reader {
         BPB_RootEntCnt = getBytesData(fat32, 17, 2);
         BPB_BytsPerSec = getBytesData(fat32, 11, 2);
         BPB_SecPerClus = getBytesData(fat32, 13, 1);
-	BytesPerClus = BPB_BytsPerSec * BPB_SecPerClus;
+        BytesPerClus = BPB_BytsPerSec * BPB_SecPerClus;
         RootClus = N = getBytesData(fat32, 44, 4);
         int BPB_TotSec32 = getBytesData(fat32, 32, 4);
         int DataSec = BPB_TotSec32 - (BPB_ResvdSecCnt + (BPB_NumFATs * FATsz) + RootDirSectors);
@@ -231,17 +231,25 @@ public class fat32Reader {
                     System.out.println("Going to delete");
                     file = cmdLineArgs[1];
                     dirEntry = directoryObj.getDirEntryByName(file.toLowerCase());
-                    int loc = dirEntry.getOffSetShortName();
-                    int n = dirEntry.getNextClusNum();
-                    List<Integer> clus = directoryObj.getClusters(fat32Img, f32Reader, n);
-                    int fatTable = f32Reader.getFatTable();
-                    int fatTableTwo = f32Reader.getFatTableTwo();
-                    f32Reader.deleteInFat(f32Reader, fatTable, clus);
-                    f32Reader.deleteInFat(f32Reader, fatTableTwo, clus);
-                    f32Reader.out.put(loc, (byte) 0xE5);
-                    int clusNum = dirEntry.getNextClusNum();
-                    directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
-                    System.out.println("done");
+                    if (dirEntry == null) {
+                        System.out.println("Error: File/Directory does not exist");
+                    }
+                    else if (dirEntry.getDirAttr() == 16) {
+                        System.out.println("Error: Cannot delete directory, only files");
+                    }
+                    else {
+                        int loc = dirEntry.getOffSetShortName();
+                        int n = dirEntry.getNextClusNum();
+                        List<Integer> clus = directoryObj.getClusters(fat32Img, f32Reader, n);
+                        int fatTable = f32Reader.getFatTable();
+                        int fatTableTwo = f32Reader.getFatTableTwo();
+                        f32Reader.deleteInFat(f32Reader, fatTable, clus);
+                        f32Reader.deleteInFat(f32Reader, fatTableTwo, clus);
+                        f32Reader.out.put(loc, (byte) 0xE5);
+                        int clusNum = dirEntry.getNextClusNum();
+                        directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.getN());
+                        System.out.println("done");
+                    }
                     break;
                 case "newfile":
                     System.out.println("Going to newfile");
@@ -669,10 +677,22 @@ public class fat32Reader {
         return volIDName;
     }
 
+    /**
+     * Gets Memory mapped file
+     * @return
+     */
     public MappedByteBuffer getOut() {
         return out;
     }
 
+    /**
+     * Gets a list of free clusters
+     * @param fat32img
+     * @param directoryObj
+     * @param f32Reader
+     * @return
+     * @throws IOException
+     */
     public List<Integer> getFreeList(String fat32img, DirectoryObj directoryObj, fat32Reader f32Reader) throws IOException {
         List<Integer> firstThreeFreeClusters = new ArrayList<Integer>();
         int fat_table = directoryObj.getFatTable(f32Reader);
@@ -705,7 +725,13 @@ public class fat32Reader {
         }
     }
 
-
+    /**
+     * Write file to fat table entry
+     * @param f32
+     * @param fatTable
+     * @param Clus
+     * @param size
+     */
     public void writeToFat(fat32Reader f32, int fatTable, List<Integer> Clus, int size){
         int bytes_per_clus = f32.getBytesPerClus();
         int total_clus = (int) Math.floor(size/bytes_per_clus) + 1;
@@ -742,6 +768,13 @@ public class fat32Reader {
         }
     }
 
+    /**
+     * Write file data to cluster
+     * @param f32
+     * @param dirObj
+     * @param Clus
+     * @param size
+     */
     public void writeToFileLocation(fat32Reader f32, DirectoryObj dirObj, List<Integer> Clus, int size){
         int bytes_per_cluster = f32.getBytesPerClus();
         int number_of_clusters = (int) Math.floor(size/bytes_per_cluster) + 1;
@@ -765,6 +798,19 @@ public class fat32Reader {
         }
     }
 
+    /**
+     * Writes new file to Fat image
+     * @param f32
+     * @param fat32
+     * @param dirObj
+     * @param fatTable
+     * @param fatTableTwo
+     * @param Clus
+     * @param size
+     * @param currentDir
+     * @param short_name
+     * @throws IOException
+     */
     public void writeNewFile(fat32Reader f32, String fat32, DirectoryObj dirObj, int fatTable, int fatTableTwo, List<Integer> Clus, int size, int currentDir, String short_name) throws IOException {
         writeToFileLocation(f32, dirObj, Clus, size);
         writeToFat(f32, fatTable, Clus, size);
