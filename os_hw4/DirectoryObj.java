@@ -77,7 +77,8 @@ public class DirectoryObj {
                 if (endOfNames == 0 || varNum >= f32.getBytesPerClus()) {
                     done = true;
                 }
-            } else {
+            }
+            else {
                 String DirNameFull = "";
                 //If it is 8 then it is a volume ID, so don't add it to lists
                 if (DIR_Attr != 0) {
@@ -92,7 +93,6 @@ public class DirectoryObj {
                     DirNameFull = DirNameFull.toLowerCase().replaceAll(" ", "");
                     String dirEntryStr = dirAttrMap.get(DIR_Attr);
                     int nextClusNum = getNextClusNum(DIR_FstClusHI,DIR_FstClusLO);
-                    //N = nextClusNum;
                     int fileLoc = getFileLocation(f32,nextClusNum);
                     DirEntry dEntry = new DirEntry(DirNameFull, DIR_FstClusHI, DIR_FstClusLO, DIR_Attr, dirEntryStr, DIR_fileSize, nextClusNum, fileLoc, offSetShortName);
                     dEntryLst.add(dEntry);
@@ -119,8 +119,10 @@ public class DirectoryObj {
      * @throws IOException
      */
     public void writeToDirectory(fat32Reader f32, String fat32, int currentDir, String short_name, int first_free_cluster, int size) throws IOException {
-        int offNum = 0;
         int varNum = 0;
+        int currentClus = 0;
+        DirEntry dMonster = dEntryLst.get(0);
+        List<Integer> clusters = getClusters(fat32,f32,dMonster.getNextClusNum());
         boolean done = false;
         String[] full_dir_name = short_name.split("\\.");
         short_name = full_dir_name[0];
@@ -133,22 +135,27 @@ public class DirectoryObj {
         }
         byte[] name = short_name.getBytes(StandardCharsets.US_ASCII);
         byte[] Bext = ext.getBytes(StandardCharsets.US_ASCII);
-        int is_empty = f32.getBytesData(fat32,currentDir + varNum + offNum,1);
+        int is_empty = f32.getBytesData(fat32,currentDir + varNum,1);
         if(theN != 2 && is_empty != 46){
             varNum += 32;
         }
         while(!done) {
-            is_empty = f32.getBytesData(fat32, currentDir + varNum + offNum, 1);
+            if (varNum >= f32.getBytesPerClus()) {
+                currentClus++;
+                currentDir = getFileLocation(f32,clusters.get(currentClus));
+                varNum = 32;
+            }
+            is_empty = f32.getBytesData(fat32, currentDir + varNum, 1);
             if (is_empty == 229 || is_empty == 0) {
                 //Write
                 for (int i = 0; i < name.length; i++) {
-                    f32.getOut().put(currentDir + varNum + offNum + i, name[i]);
+                    f32.getOut().put(currentDir + varNum+ i, name[i]);
                 }
                 for (int j = 0; j < Bext.length; j++) {
-                    f32.getOut().put(currentDir + varNum + offNum + 8 + j, Bext[j]);
+                    f32.getOut().put(currentDir + varNum + 8 + j, Bext[j]);
                 }
                 // Writing attribute value to file
-                f32.getOut().put(currentDir + varNum + offNum + 11, (byte) 0x20);
+                f32.getOut().put(currentDir + varNum + 11, (byte) 0x20);
                 String hex = Integer.toHexString(first_free_cluster);
                 int leftover = 8 - hex.length();
                 for (int i = 0; i < leftover; i++) {
@@ -164,18 +171,18 @@ public class DirectoryObj {
                 loB.asIntBuffer().put(lo);
                 byte[] ahi = hiB.array();
                 byte[] alo = loB.array();
-                f32.getOut().put(currentDir + varNum + offNum + 20, ahi[0]);
-                f32.getOut().put(currentDir + varNum + offNum + 21, ahi[1]);
-                f32.getOut().put(currentDir + varNum + offNum + 26, alo[0]);
-                f32.getOut().put(currentDir + varNum + offNum + 27, alo[1]);
+                f32.getOut().put(currentDir + varNum + 20, ahi[0]);
+                f32.getOut().put(currentDir + varNum + 21, ahi[1]);
+                f32.getOut().put(currentDir + varNum + 26, alo[0]);
+                f32.getOut().put(currentDir + varNum + 27, alo[1]);
                 ByteBuffer sizeB = ByteBuffer.allocate(8);
                 sizeB.order(ByteOrder.LITTLE_ENDIAN);
                 sizeB.asIntBuffer().put(size);
                 byte[] asize = sizeB.array();
-                f32.getOut().put(currentDir + varNum + offNum + 28, asize[0]);
-                f32.getOut().put(currentDir + varNum + offNum + 29, asize[1]);
-                f32.getOut().put(currentDir + varNum + offNum + 30, asize[2]);
-                f32.getOut().put(currentDir + varNum + offNum + 31, asize[3]);
+                f32.getOut().put(currentDir + varNum + 28, asize[0]);
+                f32.getOut().put(currentDir + varNum + 29, asize[1]);
+                f32.getOut().put(currentDir + varNum + 30, asize[2]);
+                f32.getOut().put(currentDir + varNum + 31, asize[3]);
                 String time = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
                 int hour = Integer.parseInt(time.substring(0,2));
                 int minute = Integer.parseInt(time.substring(2,4));
@@ -194,22 +201,21 @@ public class DirectoryObj {
                 int y = ((year - 1980 ) * 512) + (month * 32) + day;
                 byte i = (byte) (y % 256);
                 byte u = (byte) Math.floor(y / 256);
-                f32.getOut().put(currentDir + varNum + offNum + 13, (byte) 0);
-                f32.getOut().put(currentDir + varNum + offNum + 14, (byte) 0);
-                f32.getOut().put(currentDir + varNum + offNum + 15, (byte) 0);
-                f32.getOut().put(currentDir + varNum + offNum + 16, (byte) 0);
-                f32.getOut().put(currentDir + varNum + offNum + 17, (byte) 0);
-                f32.getOut().put(currentDir + varNum + offNum + 18, (byte) 0);
-                f32.getOut().put(currentDir + varNum + offNum + 19, (byte) 0);
-                f32.getOut().put(currentDir + varNum + offNum + 22, h);
-                f32.getOut().put(currentDir + varNum + offNum + 23, g);
-                f32.getOut().put(currentDir + varNum + offNum + 24, i);
-                f32.getOut().put(currentDir + varNum + offNum + 25, u);
+                f32.getOut().put(currentDir + varNum + 13, (byte) 0);
+                f32.getOut().put(currentDir + varNum + 14, (byte) 0);
+                f32.getOut().put(currentDir + varNum + 15, (byte) 0);
+                f32.getOut().put(currentDir + varNum + 16, (byte) 0);
+                f32.getOut().put(currentDir + varNum + 17, (byte) 0);
+                f32.getOut().put(currentDir + varNum + 18, (byte) 0);
+                f32.getOut().put(currentDir + varNum + 19, (byte) 0);
+                f32.getOut().put(currentDir + varNum + 22, h);
+                f32.getOut().put(currentDir + varNum + 23, g);
+                f32.getOut().put(currentDir + varNum + 24, i);
+                f32.getOut().put(currentDir + varNum + 25, u);
                 done = true;
             }
             else {
-                int getDotDot = f32.getBytesData(fat32, currentDir + varNum + offNum, 2);
-                offNum = 0;//reset offset number
+                int getDotDot = f32.getBytesData(fat32, currentDir + varNum, 2);
                 if (is_empty == 46 && getDotDot != 11822) {
                     varNum += 32;
                 } else {
@@ -296,10 +302,8 @@ public class DirectoryObj {
         int BPB_BytsPerSec = f32.getBPB_BytsPerSec();
         int eoc = 268435448;
         while(N < eoc) {
-            //d.addToClusterList(n);
             //add to clusters list
             clustersSpan.add(N);
-            //System.out.println("location value: " + getFileLocation(d, n));
             int FATOffset = N * 4;
             int FirstDataSector =  BPB_ResvdSecCnt + (BPB_NumFATs * Fatsz) + RootDirSectors;
             int ThisFATSecNum = BPB_ResvdSecCnt + (FATOffset / BPB_BytsPerSec);
@@ -368,7 +372,6 @@ public class DirectoryObj {
         String loClusHex = Integer.toHexString(loClus);
         String nextClusNumStr = "0x" + hiClusHex + loClusHex;
         int nextClusNum = Integer.parseInt(nextClusNumStr.split("0x")[1],16);
-        //int nextClusL = (int)Long.parseLong(nextClusNumStr, 16);
         return nextClusNum;
     }
 

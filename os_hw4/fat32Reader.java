@@ -38,8 +38,6 @@ public class fat32Reader {
     private String fat32img;
     private int BytesPerClus;
     private String volIDName;
-
-    //private static DirectoryObj directoryObj;
     private MappedByteBuffer out;
 
     /**
@@ -49,7 +47,6 @@ public class fat32Reader {
         RandomAccessFile memoryMappedFile = new RandomAccessFile(fat32, "rw");
         //Mapping a file into memory
         out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, 10485760/*10MB*/);
-        //TODO: Clean up constructor and make it into a method
         BPB_ResvdSecCnt = getBytesData(fat32, 14, 2);
         BPB_NumFATs = getBytesData(fat32, 16, 1);
         FATsz = getBytesData(fat32, 36, 4);
@@ -87,7 +84,6 @@ public class fat32Reader {
      */
     public static void main(String[] args) throws IOException {
         /* Parse args and open our image file */
-        //System.Text.Encoding.ASCII.GetString(buf);
         String fat32Img = args[0];
         fat32Reader f32Reader = new fat32Reader(fat32Img);
         f32Reader.setFat32img(fat32Img);
@@ -96,7 +92,6 @@ public class fat32Reader {
         int rootDir = f32Reader.getRootDir();
         //Set current directory to root
         int currentDir = rootDir;
-        //f32Reader.getBytesData(fat32Img,11,2);
         List<DirEntry> dirInfo;
         DirectoryObj directoryObj = new DirectoryObj(fat32Img, f32Reader, currentDir, f32Reader.N);
         f32Reader.getVolumeInfo(directoryObj.getdEntryLst());
@@ -214,9 +209,7 @@ public class fat32Reader {
                 case "volume":
                     System.out.println("Going to volume");
                     //run read helper method
-                    //directoryObj = new DirectoryObj(fat32Img,f32Reader,currentDir);
                     f32Reader.getDirInfoLst(fat32Img, directoryObj, f32Reader, rootDir);
-                    //f32Reader.volumeInfo(dirInfo);
                     System.out.println(f32Reader.getVolIDName().toUpperCase());
                     break;
                 case "freelist":
@@ -300,12 +293,6 @@ public class fat32Reader {
      * @throws IOException
      */
     public int getBytesData(String fat32Img, int offset, int size) throws IOException {
-
-        //RandomAccessFile memoryMappedFile = new RandomAccessFile(fat32Img, "rw");
-
-        //Mapping a file into memory
-        //MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, 10485760/*10MB*/);
-
         //reading from memory file in Java little endian
         double exp = Math.pow(256, size - 1);
         int eBit = 0;
@@ -315,7 +302,6 @@ public class fat32Reader {
             eBit += unsignedInt * exp;
             exp = exp / 256;
         }
-
         return eBit;
     }
 
@@ -329,12 +315,6 @@ public class fat32Reader {
      * @throws IOException
      */
     public String getBytesChar(String fat32Img, int offset, int size) throws IOException {
-
-        //RandomAccessFile memoryMappedFile = new RandomAccessFile(fat32Img, "rw");
-
-        //Mapping a file into memory
-        //MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, 10485760/*10MB*/);
-
         //reading from memory file in Java little endian
         String name = "";
         for (int i = offset; i < offset + size; i++) {
@@ -391,7 +371,6 @@ public class fat32Reader {
             if (dE.getDirAttr() != 8 && dE.getDirAttr() != 2 && attrNameFirstCharInt != 229) {
                 sorted.add(dE.getDirName());
             }
-
         }
         Collections.sort(sorted);
         return sorted;
@@ -427,8 +406,6 @@ public class fat32Reader {
      */
     public void doStat(String dirFile, DirectoryObj dirObj) throws IOException {
         DirEntry dirEntry = dirObj.getDirEntryByName(dirFile.toLowerCase());
-        //int x = getFileLocation(dirEntry);
-        //getClusters(fat32img, dirEntry);
         //if dir file name not there don't print
         if (dirEntry != null) {
             System.out.println("Size is " + dirEntry.getFileSize());
