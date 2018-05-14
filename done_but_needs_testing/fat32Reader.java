@@ -160,7 +160,7 @@ public class fat32Reader {
                         f32Reader.setN(dirEntry.getNextClusNum());
                         // If we cd .. back into root directory, we set n = 2, because the root directory is 2.
                         if (dirEntry.getDirName().equals("..") && f32Reader.getN() == 0) {
-                            f32Reader.setN(f32Reader.getRootDir());
+                            f32Reader.setN(2);
                             currentDir = rootDir;
                         } else {
                             currentDir = dirEntry.getLocation();
@@ -794,7 +794,6 @@ public class fat32Reader {
         writeToFat(f32, fatTable, Clus, size);
         writeToFat(f32, fatTableTwo, Clus, size);
         if(Clus.size() > 0) {
-
             dirObj.writeToDirectory(f32, fat32,dirObj, currentDir, short_name, Clus.get(0), size);
         }
         else{

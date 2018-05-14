@@ -123,6 +123,7 @@ public class DirectoryObj {
         int varNum = 0;
         int currentClus = 0;
         int fir_free_clus = 0;
+        boolean newClus = false;
         DirEntry dMonster = dEntryLst.get(0);
         List<Integer> clusters = getClusters(fat32,f32,dMonster.getNextClusNum());
         boolean done = false;
@@ -159,6 +160,7 @@ public class DirectoryObj {
                         varNum = 0;
                         fir_free_clus = f32.getFreeList(fat32,dirObj,f32).get(0);
                         clusters.add(fir_free_clus);
+
                         int free_clus = f32.getFatTable() + (4 * clusters.get(currentClus - 1));
                         // If the cluster is the root directory we change the cluster to the root cluster
                         if(free_clus == f32.getFatTable()){
@@ -166,7 +168,7 @@ public class DirectoryObj {
                         }
                         ByteBuffer fc = ByteBuffer.allocate(4);
                         fc.order(ByteOrder.LITTLE_ENDIAN);
-                        fc.asIntBuffer().put(fir_free_clus + 1);
+                        fc.asIntBuffer().put(fir_free_clus);
                         byte[] C = fc.array();
                         f32.getOut().put(free_clus, C[0]);
                         f32.getOut().put(free_clus + 1, C[1]);
@@ -184,10 +186,13 @@ public class DirectoryObj {
                         for (int i = 0; i < eoc.length; i++) {
                             f32.getOut().put(pos + i, eoc[i]);
                         }
+                        newClus = true;
                         done = true;
                     }
                     currentDir = getFileLocation(f32,clusters.get(currentClus));
-                    varNum = 32;
+                    if(!newClus) {
+                        varNum = 32;
+                    }
                 }
 
 
