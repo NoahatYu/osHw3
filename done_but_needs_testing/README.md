@@ -31,5 +31,7 @@ Sources used:
 
 Notes:
 	• The secret code is 27 62 40 6E 40 6E 40 53 21 27 which is 		  'b@n@n@S!'
+	• Ignored long names.
+
 
 

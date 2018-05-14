@@ -124,8 +124,13 @@ public class DirectoryObj {
         int currentClus = 0;
         int fir_free_clus = 0;
         boolean newClus = false;
+        List<Integer> clusters = new ArrayList<Integer>();
         DirEntry dMonster = dEntryLst.get(0);
-        List<Integer> clusters = getClusters(fat32,f32,dMonster.getNextClusNum());
+        if(dMonster.getDirAttr() != 8){
+            clusters = getClusters(fat32,f32,dMonster.getNextClusNum());
+        }else{
+            clusters = getClusters(fat32,f32,f32.getRootClus());
+        }
         boolean done = false;
         String[] full_dir_name = short_name.split("\\.");
         short_name = full_dir_name[0];
@@ -151,7 +156,7 @@ public class DirectoryObj {
                 }catch (Exception e){
                     //do nothing
                 }
-                varNum = 32;
+                varNum = 64;
                 /*
                 * If the reached the end of the current cluster in the directory
                 * move to the next cluster in the directory
@@ -190,7 +195,9 @@ public class DirectoryObj {
                         done = true;
                     }
                     currentDir = getFileLocation(f32,clusters.get(currentClus));
-                    if(!newClus) {
+                    if(!newClus && clusters.get(0) == f32.getRootClus()) {
+                        varNum = 64;
+                    }else if(!newClus){
                         varNum = 32;
                     }
                 }
