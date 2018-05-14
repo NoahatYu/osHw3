@@ -1,5 +1,4 @@
-package com.company;
-
+//package com.company;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,11 +7,14 @@ public class DirEntry {
     private String dirName;
     private int hiClus;
     private int loClus;
-    private String nextClusHex;
+    private int nextClusNum;
     private int dirAttr;
     private String dirAttrName;
     private int fileSize;
+    private int location;
     private List<Integer> clusters;
+    private String nextClusNumHex;
+    private int offSetShortName;
 
     /**
      * Constructor
@@ -23,30 +25,18 @@ public class DirEntry {
      * @param dirAttrName directory attribute name
      * @param fileSize file size
      */
-    public DirEntry(String dirName, int hiClus, int loClus,int dirAttr, String dirAttrName, int fileSize){
+    public DirEntry(String dirName, int hiClus, int loClus,int dirAttr, String dirAttrName, int fileSize,int nextClusNum, int location, int offSetShortName){
         this.dirName = dirName;
         this.hiClus = hiClus;
         this.loClus = loClus;
         this.dirAttr = dirAttr;
         this.fileSize = fileSize;
         this.dirAttrName = dirAttrName;
+        this.location = location;
         clusters = new ArrayList<Integer>();
-        nextClusHex = getNextClusNum(this.hiClus,this.loClus);
-
-    }
-
-    /**
-     * Gets the next cluster number value.
-     * @param hiClus hi cluster
-     * @param loClus lo cluster
-     * @return
-     */
-    private String getNextClusNum(int hiClus,int loClus){
-        String hiClusHex = Integer.toHexString(hiClus);
-        String loClusHex = Integer.toHexString(loClus);
-        String nextClusNumStr = "0x" + hiClusHex + loClusHex;
-        //int nextClusL = (int)Long.parseLong(nextClusNumStr, 16);
-        return nextClusNumStr;
+        this.nextClusNum = nextClusNum;
+        nextClusNumHex = "0x" + Integer.toHexString(this.nextClusNum);
+        this.offSetShortName = offSetShortName;
     }
 
     /**
@@ -97,18 +87,50 @@ public class DirEntry {
     }
 
     /**
-     * Gets the next cluster number in hex
-     * @return next cluster number in hex
+     * Adds a cluster to a list
+     * @param val
      */
-    public String getNextClusHex() {
-        return nextClusHex;
-    }
-
     public void addToClusterList(int val){
         clusters.add(val);
     }
 
+    /**
+     * Gets the cluster list
+     * @return clusters
+     */
     public List<Integer> getClusters() {
         return clusters;
+    }
+
+    /**
+     * Gets the next cluster number in hex
+     * @return next cluster number in hex
+     */
+    public String getNextClusNumHex() {
+        return nextClusNumHex;
+    }
+
+    /**
+     * Gets the next cluster number in decimal
+     * @return next cluster number in decimal
+     */
+    public int getNextClusNum() {
+        return nextClusNum;
+    }
+
+    /**
+     * Gets the location of the current entry
+     * @return location
+     */
+    public int getLocation() {
+        return location;
+    }
+
+    /**
+     * Gets the short name of the file in a directory
+     * @return getOffSetShortName
+     */
+    public int getOffSetShortName() {
+        return offSetShortName;
     }
 }
